@@ -8,6 +8,7 @@ import Navigation from "./components/Navigation";
 import Dashboard from "./pages/Dashboard";
 import StrategyLab from "./pages/StrategyLab";
 import Portfolio from "./pages/Portfolio";
+import RiskManagement from "./pages/RiskManagement";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -60,7 +61,7 @@ const App = () => (
                 <ProtectedRoute>
                   <Navigation />
                   <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Dashboard />
+                    <RiskManagement />
                   </main>
                 </ProtectedRoute>
               } />

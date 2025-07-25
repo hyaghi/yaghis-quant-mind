@@ -33,8 +33,9 @@ interface WatchlistItem {
 
 export function useUserPortfolios() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['portfolios', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
@@ -50,12 +51,40 @@ export function useUserPortfolios() {
     },
     enabled: !!user,
   });
+
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('portfolio-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_portfolios',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['portfolios', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
+  return query;
 }
 
 export function usePortfolioHoldings(portfolioId: string | null) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['holdings', portfolioId],
     queryFn: async () => {
       if (!portfolioId || !user) throw new Error('No portfolio ID or not authenticated');
@@ -71,12 +100,40 @@ export function usePortfolioHoldings(portfolioId: string | null) {
     },
     enabled: !!portfolioId && !!user,
   });
+
+  // Set up real-time subscription for holdings
+  useEffect(() => {
+    if (!portfolioId || !user) return;
+
+    const channel = supabase
+      .channel('holdings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'portfolio_holdings',
+          filter: `portfolio_id=eq.${portfolioId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['holdings', portfolioId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [portfolioId, user, queryClient]);
+
+  return query;
 }
 
 export function useWatchlist() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   
-  return useQuery({
+  const query = useQuery({
     queryKey: ['watchlist', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
@@ -92,6 +149,33 @@ export function useWatchlist() {
     },
     enabled: !!user,
   });
+
+  // Set up real-time subscription for watchlist
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('watchlist-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_watchlists',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['watchlist', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
+  return query;
 }
 
 export function useCreatePortfolio() {
