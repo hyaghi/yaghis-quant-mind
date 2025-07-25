@@ -10,10 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, TrendingUp } from 'lucide-react';
 
 export default function Auth() {
-  const { user, signIn, signUp, loading } = useAuth();
+  const { user, signIn, signUp, resetPassword, loading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -85,6 +86,40 @@ export default function Auth() {
           title: "Account created!",
           description: "Please check your email to verify your account.",
         });
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+
+    try {
+      const { error } = await resetPassword(email);
+      
+      if (error) {
+        toast({
+          title: "Reset failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Reset email sent!",
+          description: "Check your email for the password reset link.",
+        });
+        setShowForgotPassword(false);
       }
     } catch (error) {
       toast({
@@ -176,6 +211,17 @@ export default function Auth() {
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
+                  
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-sm text-muted-foreground hover:text-primary"
+                      onClick={() => setShowForgotPassword(true)}
+                    >
+                      Forgot your password?
+                    </Button>
+                  </div>
                 </form>
               </CardContent>
             </Card>
@@ -248,6 +294,52 @@ export default function Auth() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Forgot Password Dialog */}
+        {showForgotPassword && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Reset Password</CardTitle>
+                <CardDescription>
+                  Enter your email address and we'll send you a link to reset your password.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email</Label>
+                    <Input
+                      id="reset-email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="submit" 
+                      className="flex-1" 
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Sending..." : "Send Reset Link"}
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => setShowForgotPassword(false)}
+                      disabled={isLoading}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
