@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import MetricCard from "@/components/MetricCard";
 import SignalCard from "@/components/SignalCard";
 import PortfolioChart from "@/components/PortfolioChart";
+import { usePortfolioMetrics, useMarketOverview, useAISignals } from "@/hooks/useMarketData";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -10,72 +11,69 @@ import {
   Activity,
   RefreshCw,
   Bell,
-  BarChart3
+  BarChart3,
+  Loader2
 } from "lucide-react";
 
-// Mock data for demonstration
-const portfolioMetrics = [
-  {
-    title: "Total Equity",
-    value: "$124,847",
-    change: "+2.34%",
-    changeType: "positive" as const,
-    icon: <DollarSign className="h-4 w-4 text-muted-foreground" />
-  },
-  {
-    title: "Daily P/L",
-    value: "+$2,847",
-    change: "+2.34%",
-    changeType: "positive" as const,
-    icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />
-  },
-  {
-    title: "Sharpe Ratio",
-    value: "1.84",
-    change: "+0.12",
-    changeType: "positive" as const,
-    icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />
-  },
-  {
-    title: "Max Drawdown",
-    value: "-3.2%",
-    change: "-0.1%",
-    changeType: "positive" as const,
-    icon: <Shield className="h-4 w-4 text-muted-foreground" />
-  }
-];
-
-const activeSignals = [
-  {
-    symbol: "AAPL",
-    signal: "BUY" as const,
-    confidence: 87,
-    price: 174.32,
-    change: 2.45,
-    reason: "Strong momentum with RSI indicating oversold conditions. Technical indicators suggest upward breakout.",
-    timestamp: "2 min ago"
-  },
-  {
-    symbol: "TSLA",
-    signal: "SELL" as const,
-    confidence: 92,
-    price: 238.47,
-    change: -1.83,
-    reason: "Overbought conditions detected. MACD showing bearish divergence with high volatility warning.",
-    timestamp: "5 min ago"
-  },
-  {
-    symbol: "SPY",
-    signal: "HOLD" as const,
-    confidence: 74,
-    price: 423.18,
-    change: 0.67,
-    reason: "Mixed signals from technical indicators. Market consolidation phase, waiting for clearer direction.",
-    timestamp: "8 min ago"
-  }
-];
-
 export default function Dashboard() {
+  const portfolioMetrics = usePortfolioMetrics();
+  const marketOverview = useMarketOverview();
+  const aiSignals = useAISignals(['AAPL', 'TSLA', 'SPY']);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatPercent = (value: number) => {
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+  };
+
+  const getMetricCards = () => [
+    {
+      title: "Total Equity",
+      value: formatCurrency(portfolioMetrics.totalEquity),
+      change: formatPercent(portfolioMetrics.dailyPLPercent),
+      changeType: portfolioMetrics.dailyPLPercent >= 0 ? "positive" as const : "negative" as const,
+      icon: <DollarSign className="h-4 w-4 text-muted-foreground" />
+    },
+    {
+      title: "Daily P/L",
+      value: formatCurrency(portfolioMetrics.dailyPL),
+      change: formatPercent(portfolioMetrics.dailyPLPercent),
+      changeType: portfolioMetrics.dailyPL >= 0 ? "positive" as const : "negative" as const,
+      icon: <TrendingUp className="h-4 w-4 text-muted-foreground" />
+    },
+    {
+      title: "Sharpe Ratio",
+      value: portfolioMetrics.sharpeRatio.toFixed(2),
+      change: "+0.12",
+      changeType: "positive" as const,
+      icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />
+    },
+    {
+      title: "Max Drawdown",
+      value: `${portfolioMetrics.maxDrawdown.toFixed(1)}%`,
+      change: "-0.1%",
+      changeType: "positive" as const,
+      icon: <Shield className="h-4 w-4 text-muted-foreground" />
+    }
+  ];
+  if (portfolioMetrics.isLoading || aiSignals.isLoading || marketOverview.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const metricCards = getMetricCards();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,7 +89,7 @@ export default function Dashboard() {
             <Bell className="h-4 w-4 mr-2" />
             Alerts
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh Data
           </Button>
@@ -100,7 +98,7 @@ export default function Dashboard() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {portfolioMetrics.map((metric, index) => (
+        {metricCards.map((metric, index) => (
           <MetricCard key={index} {...metric} />
         ))}
       </div>
@@ -113,7 +111,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Activity className="h-5 w-5 mr-2" />
-              Portfolio Performance vs SPY
+              Portfolio Performance vs SPY (Real Data)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -133,9 +131,16 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {activeSignals.map((signal, index) => (
-              <SignalCard key={index} {...signal} />
-            ))}
+            {aiSignals.data && aiSignals.data.length > 0 ? (
+              aiSignals.data.map((signal, index) => (
+                <SignalCard key={index} {...signal} />
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                <p className="text-sm">Loading AI signals...</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -144,29 +149,53 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Market Summary</CardTitle>
+            <CardTitle>Market Summary (Real Data)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">S&P 500</span>
                 <div className="text-right">
-                  <div className="font-medium">4,231.8</div>
-                  <div className="text-xs text-profit">+0.67%</div>
+                  {marketOverview.data?.sp500 ? (
+                    <>
+                      <div className="font-medium">{marketOverview.data.sp500.price.toFixed(2)}</div>
+                      <div className={`text-xs ${marketOverview.data.sp500.changePercent >= 0 ? 'text-profit' : 'text-loss'}`}>
+                        {formatPercent(marketOverview.data.sp500.changePercent)}
+                      </div>
+                    </>
+                  ) : (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">NASDAQ</span>
                 <div className="text-right">
-                  <div className="font-medium">13,181.4</div>
-                  <div className="text-xs text-profit">+1.23%</div>
+                  {marketOverview.data?.nasdaq ? (
+                    <>
+                      <div className="font-medium">{marketOverview.data.nasdaq.price.toFixed(2)}</div>
+                      <div className={`text-xs ${marketOverview.data.nasdaq.changePercent >= 0 ? 'text-profit' : 'text-loss'}`}>
+                        {formatPercent(marketOverview.data.nasdaq.changePercent)}
+                      </div>
+                    </>
+                  ) : (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">VIX</span>
                 <div className="text-right">
-                  <div className="font-medium">18.42</div>
-                  <div className="text-xs text-loss">-2.1%</div>
+                  {marketOverview.data?.vix ? (
+                    <>
+                      <div className="font-medium">{marketOverview.data.vix.price.toFixed(2)}</div>
+                      <div className={`text-xs ${marketOverview.data.vix.changePercent >= 0 ? 'text-loss' : 'text-profit'}`}>
+                        {formatPercent(marketOverview.data.vix.changePercent)}
+                      </div>
+                    </>
+                  ) : (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
                 </div>
               </div>
             </div>
@@ -189,7 +218,7 @@ export default function Dashboard() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Value at Risk (1%)</span>
-                <span className="font-medium text-loss">-$4,247</span>
+                <span className="font-medium text-loss">-{formatCurrency(Math.abs(portfolioMetrics.totalEquity * 0.034))}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Cash Position</span>
