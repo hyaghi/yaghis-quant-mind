@@ -52,6 +52,15 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Financial colors
+				profit: 'hsl(var(--profit))',
+				loss: 'hsl(var(--loss))',
+				warning: 'hsl(var(--warning))',
+				info: 'hsl(var(--info))',
+				// Trading signals
+				'buy-signal': 'hsl(var(--buy-signal))',
+				'sell-signal': 'hsl(var(--sell-signal))',
+				'hold-signal': 'hsl(var(--hold-signal))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -88,7 +97,15 @@ export default {
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-glow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'slide-up': 'slideUp 0.3s ease-out'
+			},
+			backgroundImage: {
+				'gradient-profit': 'var(--gradient-profit)',
+				'gradient-loss': 'var(--gradient-loss)',
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-card': 'var(--gradient-card)'
 			}
 		}
 	},
