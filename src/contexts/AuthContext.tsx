@@ -6,6 +6,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  subscribed: boolean;
+  checkSubscription: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -18,6 +20,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscribed, setSubscribed] = useState(false);
+
+  const checkSubscription = async () => {
+    if (!user || !session) {
+      setSubscribed(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      setSubscribed(data?.subscribed || false);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setSubscribed(false);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -26,6 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check subscription when auth state changes
+        if (session?.user) {
+          setTimeout(() => {
+            checkSubscription();
+          }, 0);
+        } else {
+          setSubscribed(false);
+        }
       }
     );
 
@@ -34,6 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      if (session?.user) {
+        setTimeout(() => {
+          checkSubscription();
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -80,6 +114,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     session,
     loading,
+    subscribed,
+    checkSubscription,
     signIn,
     signUp,
     resetPassword,

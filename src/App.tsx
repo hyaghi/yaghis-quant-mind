@@ -12,6 +12,7 @@ import RiskManagement from "./pages/RiskManagement";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PortfolioPaywall from "./components/PortfolioPaywall";
 
 const queryClient = new QueryClient();
 
@@ -51,18 +52,22 @@ const App = () => (
               } />
               <Route path="/portfolio" element={
                 <ProtectedRoute>
-                  <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Portfolio />
-                  </main>
+                  <PortfolioPaywall>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <Portfolio />
+                    </main>
+                  </PortfolioPaywall>
                 </ProtectedRoute>
               } />
               <Route path="/risk" element={
                 <ProtectedRoute>
-                  <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <RiskManagement />
-                  </main>
+                  <PortfolioPaywall>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <RiskManagement />
+                    </main>
+                  </PortfolioPaywall>
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={
