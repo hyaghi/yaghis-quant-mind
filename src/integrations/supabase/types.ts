@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      portfolio_holdings: {
+        Row: {
+          average_cost: number
+          created_at: string
+          id: string
+          portfolio_id: string
+          quantity: number
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          average_cost?: number
+          created_at?: string
+          id?: string
+          portfolio_id: string
+          quantity?: number
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          average_cost?: number
+          created_at?: string
+          id?: string
+          portfolio_id?: string
+          quantity?: number
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_holdings_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "user_portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -43,6 +81,63 @@ export type Database = {
           id?: string
           preferences?: Json | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_portfolios: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          initial_value: number | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_value?: number | null
+          name?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          initial_value?: number | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_watchlists: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          price_alert: number | null
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_alert?: number | null
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          price_alert?: number | null
+          symbol?: string
           user_id?: string
         }
         Relationships: []
