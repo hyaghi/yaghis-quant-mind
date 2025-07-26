@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const newsApiKey = Deno.env.get('NEWS_API_KEY');
+const finnhubApiKey = Deno.env.get('FINNHUB_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
@@ -210,42 +210,96 @@ serve(async (req) => {
     const { tickers = ['AAPL', 'TSLA', 'SPY', 'QQQ'], sectors = ['AI', 'energy', 'tech'] } = await req.json();
 
     console.log('Environment check:');
-    console.log('NEWS_API_KEY available:', !!newsApiKey);
+    console.log('FINNHUB_API_KEY available:', !!finnhubApiKey);
     console.log('OPENAI_API_KEY available:', !!openAIApiKey);
-    console.log('NEWS_API_KEY length:', newsApiKey ? newsApiKey.length : 0);
+    console.log('FINNHUB_API_KEY length:', finnhubApiKey ? finnhubApiKey.length : 0);
     console.log('OPENAI_API_KEY length:', openAIApiKey ? openAIApiKey.length : 0);
 
-    if (!newsApiKey) {
-      throw new Error('NEWS_API_KEY not configured - please add it in Supabase Edge Function Secrets');
+    if (!finnhubApiKey) {
+      throw new Error('FINNHUB_API_KEY not configured - please add it in Supabase Edge Function Secrets');
     }
 
     if (!openAIApiKey) {
       throw new Error('OPENAI_API_KEY not configured - please add it in Supabase Edge Function Secrets');
     }
 
-    console.log('Fetching financial news for:', { tickers, sectors });
+    console.log('Fetching financial news from Finnhub for:', { tickers, sectors });
 
-    // Build search query
-    const searchQuery = [...tickers, ...sectors].join(' OR ');
+    // Fetch news from multiple sources using Finnhub
+    const allArticles = [];
     
-    // Fetch news from NewsAPI
-    const newsResponse = await fetch(
-      `https://newsapi.org/v2/everything?q=${encodeURIComponent(searchQuery)}&language=en&sortBy=publishedAt&pageSize=30&domains=finance.yahoo.com,marketwatch.com,cnbc.com,bloomberg.com,reuters.com,wsj.com,seekingalpha.com`,
+    // 1. Get general market news
+    const marketNewsResponse = await fetch(
+      `https://finnhub.io/api/v1/news?category=general&token=${finnhubApiKey}`,
       {
         headers: {
-          'X-API-Key': newsApiKey,
-        },
+          'X-Finnhub-Token': finnhubApiKey,
+        }
       }
     );
 
-    if (!newsResponse.ok) {
-      throw new Error(`NewsAPI error: ${newsResponse.status}`);
+    if (marketNewsResponse.ok) {
+      const marketNews = await marketNewsResponse.json();
+      if (Array.isArray(marketNews)) {
+        // Filter last 48 hours and add to articles
+        const twoDaysAgo = Date.now() / 1000 - (2 * 24 * 60 * 60);
+        const recentMarketNews = marketNews
+          .filter(article => article.datetime > twoDaysAgo)
+          .slice(0, 10)
+          .map(article => ({
+            title: article.headline,
+            description: article.summary || '',
+            url: article.url,
+            publishedAt: new Date(article.datetime * 1000).toISOString(),
+            source: { name: article.source }
+          }));
+        allArticles.push(...recentMarketNews);
+      }
     }
 
-    const newsData = await newsResponse.json();
-    const articles: NewsArticle[] = newsData.articles || [];
+    // 2. Get company-specific news for major tickers
+    const today = new Date();
+    const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const fromDate = threeDaysAgo.toISOString().split('T')[0];
+    const toDate = today.toISOString().split('T')[0];
 
-    console.log(`Fetched ${articles.length} articles, analyzing with AI...`);
+    for (const ticker of tickers.slice(0, 5)) { // Limit to avoid rate limits
+      try {
+        const companyNewsResponse = await fetch(
+          `https://finnhub.io/api/v1/company-news?symbol=${ticker}&from=${fromDate}&to=${toDate}&token=${finnhubApiKey}`,
+          {
+            headers: {
+              'X-Finnhub-Token': finnhubApiKey,
+            }
+          }
+        );
+
+        if (companyNewsResponse.ok) {
+          const companyNews = await companyNewsResponse.json();
+          if (Array.isArray(companyNews)) {
+            const recentCompanyNews = companyNews
+              .slice(0, 3) // Limit per company
+              .map(article => ({
+                title: article.headline,
+                description: article.summary || '',
+                url: article.url,
+                publishedAt: new Date(article.datetime * 1000).toISOString(),
+                source: { name: article.source }
+              }));
+            allArticles.push(...recentCompanyNews);
+          }
+        }
+        
+        // Add small delay to respect rate limits
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error(`Error fetching news for ${ticker}:`, error);
+      }
+    }
+
+    console.log(`Fetched ${allArticles.length} articles from Finnhub, analyzing with AI...`);
+
+    const articles: NewsArticle[] = allArticles;
 
     // Analyze each article with OpenAI
     const analyzedNews: AnalyzedNews[] = await Promise.all(
