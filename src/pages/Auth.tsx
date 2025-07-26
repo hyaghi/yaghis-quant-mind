@@ -22,8 +22,16 @@ export default function Auth() {
   // Check if this is a password reset flow
   useEffect(() => {
     const type = searchParams.get('type');
-    if (type === 'recovery') {
+    const accessToken = searchParams.get('access_token');
+    const refreshToken = searchParams.get('refresh_token');
+    
+    if (type === 'recovery' && accessToken && refreshToken) {
       setIsPasswordReset(true);
+      // Set the session from URL parameters for password reset
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
     }
   }, [searchParams]);
 
