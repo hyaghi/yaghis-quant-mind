@@ -7,9 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useUserPortfolios, usePortfolioHoldings, useWatchlist, useCreatePortfolio, useAddToWatchlist, useAddHolding } from '@/hooks/usePortfolio';
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist, useCreatePortfolio, useAddToWatchlist, useAddHolding, useUpdateHolding } from '@/hooks/usePortfolio';
 import { useMultipleQuotes } from '@/hooks/useMarketData';
-import { PlusCircle, Eye, TrendingUp, TrendingDown } from 'lucide-react';
+import { PlusCircle, Eye, TrendingUp, TrendingDown, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Portfolio() {
@@ -29,6 +29,7 @@ export default function Portfolio() {
   const createPortfolio = useCreatePortfolio();
   const addToWatchlist = useAddToWatchlist();
   const addHolding = useAddHolding();
+  const updateHolding = useUpdateHolding();
   const { toast } = useToast();
   
   const [newPortfolioName, setNewPortfolioName] = useState('');
@@ -39,6 +40,12 @@ export default function Portfolio() {
     quantity: '',
     averageCost: ''
   });
+  const [editingHolding, setEditingHolding] = useState<{
+    id: string;
+    symbol: string;
+    quantity: string;
+    averageCost: string;
+  } | null>(null);
 
   const handleCreatePortfolio = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +104,26 @@ export default function Portfolio() {
     });
     
     setNewHolding({ symbol: '', quantity: '', averageCost: '' });
+  };
+
+  const handleEditHolding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingHolding || !editingHolding.quantity || !editingHolding.averageCost) {
+      toast({
+        title: "All fields required",
+        description: "Please fill in all holding details.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await updateHolding.mutateAsync({
+      id: editingHolding.id,
+      quantity: parseFloat(editingHolding.quantity),
+      average_cost: parseFloat(editingHolding.averageCost)
+    });
+    
+    setEditingHolding(null);
   };
 
   if (portfoliosLoading || watchlistLoading) {
@@ -276,6 +303,7 @@ export default function Portfolio() {
                         <TableHead>Avg Cost</TableHead>
                         <TableHead>Current Price</TableHead>
                         <TableHead>P&L</TableHead>
+                        <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -298,6 +326,20 @@ export default function Portfolio() {
                                 ${pnl.toFixed(2)} ({pnlPercent.toFixed(1)}%)
                               </div>
                             </TableCell>
+                            <TableCell>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingHolding({
+                                  id: holding.id,
+                                  symbol: holding.symbol,
+                                  quantity: holding.quantity.toString(),
+                                  averageCost: holding.average_cost.toString()
+                                })}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </TableCell>
                           </TableRow>
                         );
                       })}
@@ -311,6 +353,55 @@ export default function Portfolio() {
               </CardContent>
             </Card>
           )}
+
+          {/* Edit Holding Dialog */}
+          <Dialog open={!!editingHolding} onOpenChange={() => setEditingHolding(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Holding</DialogTitle>
+                <DialogDescription>
+                  Update the quantity and average cost for {editingHolding?.symbol}.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleEditHolding} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-quantity">Quantity</Label>
+                  <Input
+                    id="edit-quantity"
+                    type="number"
+                    step="0.000001"
+                    value={editingHolding?.quantity || ''}
+                    onChange={(e) => setEditingHolding(prev => prev ? { ...prev, quantity: e.target.value } : null)}
+                    placeholder="Number of shares"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-cost">Average Cost</Label>
+                  <Input
+                    id="edit-cost"
+                    type="number"
+                    step="0.01"
+                    value={editingHolding?.averageCost || ''}
+                    onChange={(e) => setEditingHolding(prev => prev ? { ...prev, averageCost: e.target.value } : null)}
+                    placeholder="Cost per share"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1" disabled={updateHolding.isPending}>
+                    {updateHolding.isPending ? "Updating..." : "Update Holding"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setEditingHolding(null)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         <TabsContent value="watchlist" className="space-y-4">

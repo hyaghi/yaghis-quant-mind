@@ -312,3 +312,47 @@ export function useAddHolding() {
     }
   });
 }
+
+export function useUpdateHolding() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      id,
+      quantity, 
+      average_cost 
+    }: { 
+      id: string;
+      quantity: number; 
+      average_cost: number;
+    }) => {
+      const { data, error } = await supabase
+        .from('portfolio_holdings')
+        .update({
+          quantity,
+          average_cost
+        })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['holdings'] });
+      toast({
+        title: "Holding updated",
+        description: "Portfolio holding has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating holding",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+}
