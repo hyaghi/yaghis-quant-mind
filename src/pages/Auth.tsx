@@ -22,16 +22,11 @@ export default function Auth() {
   // Check if this is a password reset flow
   useEffect(() => {
     const type = searchParams.get('type');
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
     
-    if (type === 'recovery' && accessToken && refreshToken) {
+    if (type === 'recovery') {
       setIsPasswordReset(true);
-      // Set the session from URL parameters for password reset
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+      // Prevent automatic login for password reset
+      supabase.auth.signOut();
     }
   }, [searchParams]);
 
@@ -170,6 +165,23 @@ export default function Auth() {
     }
 
     try {
+      // Get the tokens from URL for password reset
+      const accessToken = searchParams.get('access_token');
+      const refreshToken = searchParams.get('refresh_token');
+      
+      if (!accessToken || !refreshToken) {
+        throw new Error('Invalid reset link. Please request a new password reset.');
+      }
+
+      // Set session first
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+
+      if (sessionError) throw sessionError;
+
+      // Then update password
       const { error } = await supabase.auth.updateUser({ password });
       
       if (error) {
@@ -187,10 +199,10 @@ export default function Auth() {
         // Navigate to home after successful password reset
         window.location.href = '/';
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "An error occurred",
-        description: "Please try again later.",
+        description: error.message || "Please try again later.",
         variant: "destructive",
       });
     } finally {
