@@ -209,12 +209,18 @@ serve(async (req) => {
   try {
     const { tickers = ['AAPL', 'TSLA', 'SPY', 'QQQ'], sectors = ['AI', 'energy', 'tech'] } = await req.json();
 
+    console.log('Environment check:');
+    console.log('NEWS_API_KEY available:', !!newsApiKey);
+    console.log('OPENAI_API_KEY available:', !!openAIApiKey);
+    console.log('NEWS_API_KEY length:', newsApiKey ? newsApiKey.length : 0);
+    console.log('OPENAI_API_KEY length:', openAIApiKey ? openAIApiKey.length : 0);
+
     if (!newsApiKey) {
-      throw new Error('NEWS_API_KEY not configured');
+      throw new Error('NEWS_API_KEY not configured - please add it in Supabase Edge Function Secrets');
     }
 
     if (!openAIApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
+      throw new Error('OPENAI_API_KEY not configured - please add it in Supabase Edge Function Secrets');
     }
 
     console.log('Fetching financial news for:', { tickers, sectors });
