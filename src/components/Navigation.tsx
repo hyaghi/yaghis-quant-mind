@@ -12,7 +12,8 @@ import {
   DollarSign,
   LogOut,
   User,
-  Newspaper
+  Newspaper,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -29,6 +30,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Strategy Lab", href: "/strategy", icon: TrendingUp },
   { name: "News Sentiment", href: "/news", icon: Newspaper },
+  { name: "Watchlist", href: "/watchlist", icon: Eye },
   { name: "AI Signals", href: "/signals", icon: Bot },
   { name: "Portfolio", href: "/portfolio", icon: Briefcase },
   { name: "Risk Manager", href: "/risk", icon: Shield },

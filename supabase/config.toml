@@ -37,6 +37,9 @@ port = 54325
 [functions.analyze-financial-news]
 verify_jwt = false
 
+[functions.daily-summary]
+verify_jwt = true
+
 [functions.create-checkout]
 verify_jwt = true
 
