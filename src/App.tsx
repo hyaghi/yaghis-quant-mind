@@ -24,7 +24,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename="/quant-mind">
           <div className="min-h-screen bg-background">
             <Routes>
               <Route path="/auth" element={<Auth />} />
