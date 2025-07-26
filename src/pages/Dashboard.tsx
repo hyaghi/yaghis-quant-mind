@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import MetricCard from "@/components/MetricCard";
 import SignalCard from "@/components/SignalCard";
 import PortfolioChart from "@/components/PortfolioChart";
+import FinancialNews from "@/components/FinancialNews";
 import { usePortfolioMetrics, useMarketOverview, useAISignals } from "@/hooks/useMarketData";
 import { 
   DollarSign, 
@@ -145,89 +146,97 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Market Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Market Summary (Real Data)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">S&P 500</span>
-                <div className="text-right">
-                  {marketOverview.data?.sp500 ? (
-                    <>
-                      <div className="font-medium">{marketOverview.data.sp500.price.toFixed(2)}</div>
-                      <div className={`text-xs ${marketOverview.data.sp500.changePercent >= 0 ? 'text-profit' : 'text-loss'}`}>
-                        {formatPercent(marketOverview.data.sp500.changePercent)}
-                      </div>
-                    </>
-                  ) : (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
+      {/* Financial News Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <FinancialNews />
+        </div>
+        
+        {/* Market Overview */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Summary (Real Data)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">S&P 500</span>
+                  <div className="text-right">
+                    {marketOverview.data?.sp500 ? (
+                      <>
+                        <div className="font-medium">{marketOverview.data.sp500.price.toFixed(2)}</div>
+                        <div className={`text-xs ${marketOverview.data.sp500.changePercent >= 0 ? 'text-profit' : 'text-loss'}`}>
+                          {formatPercent(marketOverview.data.sp500.changePercent)}
+                        </div>
+                      </>
+                    ) : (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">NASDAQ</span>
+                  <div className="text-right">
+                    {marketOverview.data?.nasdaq ? (
+                      <>
+                        <div className="font-medium">{marketOverview.data.nasdaq.price.toFixed(2)}</div>
+                        <div className={`text-xs ${marketOverview.data.nasdaq.changePercent >= 0 ? 'text-profit' : 'text-loss'}`}>
+                          {formatPercent(marketOverview.data.nasdaq.changePercent)}
+                        </div>
+                      </>
+                    ) : (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">VIX</span>
+                  <div className="text-right">
+                    {marketOverview.data?.vix ? (
+                      <>
+                        <div className="font-medium">{marketOverview.data.vix.price.toFixed(2)}</div>
+                        <div className={`text-xs ${marketOverview.data.vix.changePercent >= 0 ? 'text-loss' : 'text-profit'}`}>
+                          {formatPercent(marketOverview.data.vix.changePercent)}
+                        </div>
+                      </>
+                    ) : (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">NASDAQ</span>
-                <div className="text-right">
-                  {marketOverview.data?.nasdaq ? (
-                    <>
-                      <div className="font-medium">{marketOverview.data.nasdaq.price.toFixed(2)}</div>
-                      <div className={`text-xs ${marketOverview.data.nasdaq.changePercent >= 0 ? 'text-profit' : 'text-loss'}`}>
-                        {formatPercent(marketOverview.data.nasdaq.changePercent)}
-                      </div>
-                    </>
-                  ) : (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">VIX</span>
-                <div className="text-right">
-                  {marketOverview.data?.vix ? (
-                    <>
-                      <div className="font-medium">{marketOverview.data.vix.price.toFixed(2)}</div>
-                      <div className={`text-xs ${marketOverview.data.vix.changePercent >= 0 ? 'text-loss' : 'text-profit'}`}>
-                        {formatPercent(marketOverview.data.vix.changePercent)}
-                      </div>
-                    </>
-                  ) : (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Risk Metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Portfolio Beta</span>
-                <span className="font-medium">0.87</span>
+          <Card>
+            <CardHeader>
+              <CardTitle>Risk Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Portfolio Beta</span>
+                  <span className="font-medium">0.87</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">30-Day Volatility</span>
+                  <span className="font-medium">14.2%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Value at Risk (1%)</span>
+                  <span className="font-medium text-loss">-{formatCurrency(Math.abs(portfolioMetrics.totalEquity * 0.034))}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Cash Position</span>
+                  <span className="font-medium">12.4%</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">30-Day Volatility</span>
-                <span className="font-medium">14.2%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Value at Risk (1%)</span>
-                <span className="font-medium text-loss">-{formatCurrency(Math.abs(portfolioMetrics.totalEquity * 0.034))}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Cash Position</span>
-                <span className="font-medium">12.4%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
     </div>
   );
 }

@@ -34,6 +34,9 @@ file_size_limit = "50MB"
 enabled = true
 port = 54325
 
+[functions.analyze-financial-news]
+verify_jwt = false
+
 [functions.create-checkout]
 verify_jwt = true
 
