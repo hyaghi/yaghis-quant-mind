@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import StrategyLab from "./pages/StrategyLab";
 import Portfolio from "./pages/Portfolio";
 import RiskManagement from "./pages/RiskManagement";
+import NewsSentimentDashboard from "./pages/NewsSentimentDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -39,6 +40,14 @@ const App = () => (
                   <Navigation />
                   <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <StrategyLab />
+                  </main>
+                </ProtectedRoute>
+              } />
+              <Route path="/news" element={
+                <ProtectedRoute>
+                  <Navigation />
+                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <NewsSentimentDashboard />
                   </main>
                 </ProtectedRoute>
               } />
