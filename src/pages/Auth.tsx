@@ -22,13 +22,31 @@ export default function Auth() {
   // Check if this is a password reset flow
   useEffect(() => {
     const type = searchParams.get('type');
+    const accessToken = searchParams.get('access_token');
+    const refreshToken = searchParams.get('refresh_token');
     
     if (type === 'recovery') {
       setIsPasswordReset(true);
-      // Prevent automatic login for password reset
-      supabase.auth.signOut();
+      
+      // Immediately set session if we have tokens to prevent expiry
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ error }) => {
+          if (error) {
+            console.error('Failed to set session:', error);
+            toast({
+              title: "Reset link expired",
+              description: "Please request a new password reset link.",
+              variant: "destructive",
+            });
+            setIsPasswordReset(false);
+          }
+        });
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, toast]);
 
   // Redirect if already authenticated but NOT in password reset mode
   if (user && !loading && !isPasswordReset) {
@@ -165,34 +183,11 @@ export default function Auth() {
     }
 
     try {
-      // Get the tokens from URL for password reset
-      const accessToken = searchParams.get('access_token');
-      const refreshToken = searchParams.get('refresh_token');
-      
-      if (accessToken && refreshToken) {
-        // Set session first if we have valid tokens
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-
-        if (sessionError) {
-          toast({
-            title: "Reset link expired",
-            description: "Please request a new password reset link.",
-            variant: "destructive",
-          });
-          setIsPasswordReset(false);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // Try to update password
+      // Try to update password directly - session should already be set
       const { error } = await supabase.auth.updateUser({ password });
       
       if (error) {
-        if (error.message.includes('session')) {
+        if (error.message.includes('session') || error.message.includes('token')) {
           toast({
             title: "Reset link expired",
             description: "Please request a new password reset link.",
