@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from './useAdmin';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionStatus {
@@ -11,6 +12,7 @@ interface SubscriptionStatus {
 
 export function useSubscription() {
   const { user, session } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [status, setStatus] = useState<SubscriptionStatus>({
     subscribed: false,
     loading: true
@@ -19,6 +21,12 @@ export function useSubscription() {
   const checkSubscription = async () => {
     if (!user || !session) {
       setStatus({ subscribed: false, loading: false });
+      return;
+    }
+
+    // Admin users bypass subscription check
+    if (isAdmin) {
+      setStatus({ subscribed: true, loading: false });
       return;
     }
 
@@ -54,8 +62,10 @@ export function useSubscription() {
   };
 
   useEffect(() => {
-    checkSubscription();
-  }, [user, session]);
+    if (!adminLoading) {
+      checkSubscription();
+    }
+  }, [user, session, isAdmin, adminLoading]);
 
   return {
     ...status,
