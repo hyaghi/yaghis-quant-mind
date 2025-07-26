@@ -169,27 +169,43 @@ export default function Auth() {
       const accessToken = searchParams.get('access_token');
       const refreshToken = searchParams.get('refresh_token');
       
-      if (!accessToken || !refreshToken) {
-        throw new Error('Invalid reset link. Please request a new password reset.');
+      if (accessToken && refreshToken) {
+        // Set session first if we have valid tokens
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          toast({
+            title: "Reset link expired",
+            description: "Please request a new password reset link.",
+            variant: "destructive",
+          });
+          setIsPasswordReset(false);
+          setIsLoading(false);
+          return;
+        }
       }
 
-      // Set session first
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-
-      if (sessionError) throw sessionError;
-
-      // Then update password
+      // Try to update password
       const { error } = await supabase.auth.updateUser({ password });
       
       if (error) {
-        toast({
-          title: "Password update failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error.message.includes('session')) {
+          toast({
+            title: "Reset link expired",
+            description: "Please request a new password reset link.",
+            variant: "destructive",
+          });
+          setIsPasswordReset(false);
+        } else {
+          toast({
+            title: "Password update failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Password updated!",
@@ -201,10 +217,11 @@ export default function Auth() {
       }
     } catch (error: any) {
       toast({
-        title: "An error occurred",
-        description: error.message || "Please try again later.",
+        title: "Reset link expired",
+        description: "Please request a new password reset link.",
         variant: "destructive",
       });
+      setIsPasswordReset(false);
     } finally {
       setIsLoading(false);
     }
@@ -229,17 +246,17 @@ export default function Auth() {
               <h1 className="text-2xl font-bold">Reset Password</h1>
             </div>
             <p className="text-muted-foreground">
-              Enter your new password below
+              Enter your new password below. If this link has expired, please request a new password reset.
             </p>
           </div>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Set New Password</CardTitle>
-              <CardDescription>
-                Choose a strong password for your account
-              </CardDescription>
-            </CardHeader>
+              <CardHeader>
+                <CardTitle>Set New Password</CardTitle>
+                <CardDescription>
+                  Choose a strong password for your account. If you get an error, the reset link may have expired.
+                </CardDescription>
+              </CardHeader>
             <CardContent>
               <form onSubmit={handlePasswordUpdate} className="space-y-4">
                 <div className="space-y-2">
