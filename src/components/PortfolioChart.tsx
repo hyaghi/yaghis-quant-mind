@@ -2,6 +2,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import { fetchHistoricalData, generatePortfolioData } from '@/services/marketData';
+import { usePortfolioHoldings } from '@/hooks/usePortfolio';
 import { Loader2 } from 'lucide-react';
 
 interface CustomTooltipProps {
@@ -26,7 +27,12 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-export default function PortfolioChart() {
+export default function PortfolioChart({ selectedPortfolioId = "all" }: { selectedPortfolioId?: string }) {
+  // Fetch portfolio holdings if a specific portfolio is selected
+  const { data: holdings } = usePortfolioHoldings(
+    selectedPortfolioId !== "all" ? selectedPortfolioId : null
+  );
+
   // Fetch real SPY data
   const { data: spyData, isLoading: spyLoading } = useQuery({
     queryKey: ['spy-historical'],
@@ -36,7 +42,19 @@ export default function PortfolioChart() {
   });
 
   // Generate portfolio data (normalized to SPY timeframe)
-  const portfolioData = generatePortfolioData(100000, 90);
+  // For specific portfolios, use actual holdings; for "all", use mock data
+  const portfolioData = React.useMemo(() => {
+    if (selectedPortfolioId === "all") {
+      return generatePortfolioData(100000, 90);
+    }
+    
+    // Calculate initial value from holdings
+    const initialValue = holdings?.reduce((sum, holding) => 
+      sum + (holding.quantity * holding.average_cost), 0
+    ) || 100000;
+    
+    return generatePortfolioData(initialValue, 90);
+  }, [selectedPortfolioId, holdings]);
 
   // Combine portfolio and SPY data
   const chartData = React.useMemo(() => {

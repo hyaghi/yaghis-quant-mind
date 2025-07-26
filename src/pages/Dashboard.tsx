@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MetricCard from "@/components/MetricCard";
 import SignalCard from "@/components/SignalCard";
 import PortfolioChart from "@/components/PortfolioChart";
 import FinancialNews from "@/components/FinancialNews";
 import { usePortfolioMetrics, useMarketOverview, useAISignals } from "@/hooks/useMarketData";
+import { useUserPortfolios } from "@/hooks/usePortfolio";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -13,10 +16,13 @@ import {
   RefreshCw,
   Bell,
   BarChart3,
-  Loader2
+  Loader2,
+  FolderOpen
 } from "lucide-react";
 
 export default function Dashboard() {
+  const [selectedPortfolio, setSelectedPortfolio] = useState<string>("all");
+  const { data: portfolios, isLoading: portfoliosLoading } = useUserPortfolios();
   const portfolioMetrics = usePortfolioMetrics();
   const marketOverview = useMarketOverview();
   const aiSignals = useAISignals(['AAPL', 'TSLA', 'SPY']);
@@ -65,7 +71,7 @@ export default function Dashboard() {
       icon: <Shield className="h-4 w-4 text-muted-foreground" />
     }
   ];
-  if (portfolioMetrics.isLoading || aiSignals.isLoading || marketOverview.isLoading) {
+  if (portfolioMetrics.isLoading || aiSignals.isLoading || marketOverview.isLoading || portfoliosLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -97,6 +103,41 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Portfolio Selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <FolderOpen className="h-5 w-5 mr-2" />
+            Portfolio Selection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-4">
+            <label htmlFor="portfolio-select" className="text-sm font-medium whitespace-nowrap">
+              View Portfolio:
+            </label>
+            <Select value={selectedPortfolio} onValueChange={setSelectedPortfolio}>
+              <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder="Select a portfolio" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border border-border shadow-lg z-50">
+                <SelectItem value="all">All Portfolios (Combined)</SelectItem>
+                {portfolios?.map((portfolio) => (
+                  <SelectItem key={portfolio.id} value={portfolio.id}>
+                    {portfolio.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedPortfolio !== "all" && portfolios && (
+              <div className="text-sm text-muted-foreground">
+                {portfolios.find(p => p.id === selectedPortfolio)?.description || "No description"}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((metric, index) => (
@@ -113,10 +154,15 @@ export default function Dashboard() {
             <CardTitle className="flex items-center">
               <Activity className="h-5 w-5 mr-2" />
               Portfolio Performance vs SPY (Real Data)
+              {selectedPortfolio !== "all" && portfolios && (
+                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                  - {portfolios.find(p => p.id === selectedPortfolio)?.name}
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <PortfolioChart />
+            <PortfolioChart selectedPortfolioId={selectedPortfolio} />
           </CardContent>
         </Card>
 
