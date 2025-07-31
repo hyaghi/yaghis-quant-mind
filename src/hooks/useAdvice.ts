@@ -72,16 +72,19 @@ export function useGenerateAdvice() {
 
       if (error) throw error;
 
-      // Save advice to database
+      // Save advice to database (using audit_events as temporary storage)
       const { data: savedAdvice, error: saveError } = await supabase
-        .from('portfolio_advice')
+        .from('audit_events')
         .insert([{
           user_id: user.id,
-          allocation_id: params.allocationId,
-          scenario_set_id: params.scenarioSetId,
-          target_weights_json: advice.targetWeights as any,
-          trades_json: advice.trades as any,
-          rationale_json: advice.rationale as any
+          event_type: 'portfolio_advice_generated',
+          payload_json: {
+            allocation_id: params.allocationId,
+            scenario_set_id: params.scenarioSetId,
+            target_weights: advice.targetWeights,
+            trades: advice.trades,
+            rationale: advice.rationale
+          } as any
         }])
         .select()
         .single();
@@ -124,12 +127,9 @@ export function useUserAdvice() {
     queryKey: ['portfolio-advice', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('portfolio_advice')
-        .select(`
-          *,
-          candidate_allocations!inner(name),
-          scenario_sets(name)
-        `)
+        .from('audit_events')
+        .select('*')
+        .eq('event_type', 'portfolio_advice_generated')
         .order('created_at', { ascending: false });
       
       if (error) throw error;

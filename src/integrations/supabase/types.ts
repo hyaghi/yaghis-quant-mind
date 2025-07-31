@@ -157,6 +157,57 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_advice: {
+        Row: {
+          allocation_id: string
+          created_at: string
+          id: string
+          rationale_json: Json
+          scenario_set_id: string | null
+          target_weights_json: Json
+          trades_json: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allocation_id: string
+          created_at?: string
+          id?: string
+          rationale_json?: Json
+          scenario_set_id?: string | null
+          target_weights_json?: Json
+          trades_json?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allocation_id?: string
+          created_at?: string
+          id?: string
+          rationale_json?: Json
+          scenario_set_id?: string | null
+          target_weights_json?: Json
+          trades_json?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_advice_allocation_id_fkey"
+            columns: ["allocation_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_allocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portfolio_advice_scenario_set_id_fkey"
+            columns: ["scenario_set_id"]
+            isOneToOne: false
+            referencedRelation: "scenario_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portfolio_holdings: {
         Row: {
           average_cost: number
