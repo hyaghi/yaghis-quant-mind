@@ -11,6 +11,10 @@ import Portfolio from "./pages/Portfolio";
 import RiskManagement from "./pages/RiskManagement";
 import NewsSentimentDashboard from "./pages/NewsSentimentDashboard";
 import WatchlistManager from "./pages/WatchlistManager";
+import Scenarios from "./pages/Scenarios";
+import Optimizer from "./pages/Optimizer";
+import Simulations from "./pages/Simulations";
+import Reports from "./pages/Reports";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -74,6 +78,46 @@ const App = () => (
                     <Navigation />
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                       <Portfolio />
+                    </main>
+                  </PortfolioPaywall>
+                </ProtectedRoute>
+              } />
+              <Route path="/scenarios" element={
+                <ProtectedRoute>
+                  <PortfolioPaywall>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <Scenarios />
+                    </main>
+                  </PortfolioPaywall>
+                </ProtectedRoute>
+              } />
+              <Route path="/optimizer" element={
+                <ProtectedRoute>
+                  <PortfolioPaywall>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <Optimizer />
+                    </main>
+                  </PortfolioPaywall>
+                </ProtectedRoute>
+              } />
+              <Route path="/simulations" element={
+                <ProtectedRoute>
+                  <PortfolioPaywall>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <Simulations />
+                    </main>
+                  </PortfolioPaywall>
+                </ProtectedRoute>
+              } />
+              <Route path="/reports" element={
+                <ProtectedRoute>
+                  <PortfolioPaywall>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                      <Reports />
                     </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>

@@ -14,6 +14,149 @@ export type Database = {
   }
   public: {
     Tables: {
+      asset_prices: {
+        Row: {
+          adjusted_close: number
+          asset_id: string
+          close: number
+          created_at: string
+          date: string
+          id: string
+          volume: number | null
+        }
+        Insert: {
+          adjusted_close: number
+          asset_id: string
+          close: number
+          created_at?: string
+          date: string
+          id?: string
+          volume?: number | null
+        }
+        Update: {
+          adjusted_close?: number
+          asset_id?: string
+          close?: number
+          created_at?: string
+          date?: string
+          id?: string
+          volume?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_prices_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          asset_class: string
+          created_at: string
+          currency: string
+          id: string
+          name: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          asset_class: string
+          created_at?: string
+          currency?: string
+          id?: string
+          name: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          asset_class?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          name?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload_json: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload_json?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload_json?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      candidate_allocations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+          weights_json: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+          weights_json?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+          weights_json?: Json
+        }
+        Relationships: []
+      }
+      constraint_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          params_json: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          params_json?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          params_json?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       portfolio_holdings: {
         Row: {
           average_cost: number
@@ -85,6 +228,87 @@ export type Database = {
         }
         Relationships: []
       }
+      scenario_sets: {
+        Row: {
+          config_json: Json
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          config_json?: Json
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          config_json?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      simulation_runs: {
+        Row: {
+          allocation_id: string
+          created_at: string
+          finished_at: string | null
+          id: string
+          meta_json: Json | null
+          progress_pct: number | null
+          scenario_set_id: string
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          allocation_id: string
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          meta_json?: Json | null
+          progress_pct?: number | null
+          scenario_set_id: string
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          allocation_id?: string
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          meta_json?: Json | null
+          progress_pct?: number | null
+          scenario_set_id?: string
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "simulation_runs_allocation_id_fkey"
+            columns: ["allocation_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_allocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "simulation_runs_scenario_set_id_fkey"
+            columns: ["scenario_set_id"]
+            isOneToOne: false
+            referencedRelation: "scenario_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -150,6 +374,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_positions: {
+        Row: {
+          as_of_date: string
+          asset_id: string
+          cost_basis: number
+          created_at: string
+          id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          as_of_date?: string
+          asset_id: string
+          cost_basis?: number
+          created_at?: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          as_of_date?: string
+          asset_id?: string
+          cost_basis?: number
+          created_at?: string
+          id?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_positions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

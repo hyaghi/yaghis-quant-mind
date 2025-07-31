@@ -13,7 +13,11 @@ import {
   LogOut,
   User,
   Newspaper,
-  Eye
+  Eye,
+  Target,
+  Zap,
+  BarChart,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -33,6 +37,10 @@ const navigation = [
   { name: "Watchlist", href: "/watchlist", icon: Eye },
   { name: "AI Signals", href: "/signals", icon: Bot },
   { name: "Portfolio", href: "/portfolio", icon: Briefcase },
+  { name: "Scenarios", href: "/scenarios", icon: Target },
+  { name: "Optimizer", href: "/optimizer", icon: Zap },
+  { name: "Simulations", href: "/simulations", icon: BarChart },
+  { name: "Reports", href: "/reports", icon: FileText },
   { name: "Risk Manager", href: "/risk", icon: Shield },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
