@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Zap, Target, TrendingUp, Shield, BarChart3, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useOptimizePortfolio } from "@/hooks/useOptimization";
+import { useScenarioSets } from "@/hooks/useScenarios";
 
 interface OptimizerConfig {
   objective: string;
@@ -58,6 +60,8 @@ const constraintProfiles = [
 
 export default function Optimizer() {
   const { toast } = useToast();
+  const optimizePortfolio = useOptimizePortfolio();
+  const { data: scenarioSets } = useScenarioSets();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<OptimizationResult[]>([]);
@@ -70,54 +74,45 @@ export default function Optimizer() {
     constraintsRef: "balanced"
   });
 
+
+  const [selectedScenarioId, setSelectedScenarioId] = useState<string>("");
+  const [selectedAssets] = useState(["AAPL", "MSFT", "GOOGL", "IEF", "GLD", "CASH"]);
+
   const handleOptimize = async () => {
     setIsOptimizing(true);
     setProgress(0);
     setResults([]);
 
-    // Simulate optimization process
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsOptimizing(false);
-          
-          // Mock results
-          const mockResults: OptimizationResult[] = [
-            {
-              allocationId: "opt-1",
-              weights: { "AAPL": 0.15, "MSFT": 0.12, "GOOGL": 0.10, "AMZN": 0.08, "IEF": 0.25, "GLD": 0.15, "CASH": 0.15 },
-              diagnostics: {
-                expectedReturn: 0.092,
-                expectedVol: 0.118,
-                sharpeRatio: 0.78,
-                maxWeight: 0.25,
-                turnover: 0.34
-              }
-            },
-            {
-              allocationId: "opt-2", 
-              weights: { "AAPL": 0.08, "MSFT": 0.08, "GOOGL": 0.08, "AMZN": 0.08, "IEF": 0.35, "GLD": 0.20, "CASH": 0.13 },
-              diagnostics: {
-                expectedReturn: 0.074,
-                expectedVol: 0.089,
-                sharpeRatio: 0.83,
-                maxWeight: 0.35,
-                turnover: 0.28
-              }
-            }
-          ];
-          
-          setResults(mockResults);
-          toast({
-            title: "Optimization Complete",
-            description: `Generated ${mockResults.length} optimal allocations`
-          });
-          return prev;
-        }
-        return prev + 2;
+    try {
+      // Simulate progress
+      const progressInterval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 10, 90));
+      }, 200);
+
+      const result = await optimizePortfolio.mutateAsync({
+        config,
+        assets: selectedAssets,
+        scenarioSetId: selectedScenarioId || undefined,
+        constraintsProfile: constraintProfiles.find(p => p.id === config.constraintsRef)
       });
-    }, 100);
+
+      clearInterval(progressInterval);
+      setProgress(100);
+
+      // Convert result to UI format
+      const mockResult: OptimizationResult = {
+        allocationId: result.allocation.id,
+        weights: result.allocation.weights_json as Record<string, number>,
+        diagnostics: result.diagnostics
+      };
+
+      setResults([mockResult]);
+    } catch (error) {
+      // Error already handled by the mutation
+    } finally {
+      setIsOptimizing(false);
+      setProgress(0);
+    }
   };
 
   return (
@@ -131,11 +126,11 @@ export default function Optimizer() {
         </div>
         <Button 
           onClick={handleOptimize} 
-          disabled={isOptimizing}
+          disabled={isOptimizing || optimizePortfolio.isPending}
           className="flex items-center gap-2"
         >
-          <Zap className="h-4 w-4" />
-          {isOptimizing ? "Optimizing..." : "Run Optimization"}
+          <Target className="h-4 w-4" />
+          {isOptimizing || optimizePortfolio.isPending ? "Optimizing..." : "Run Optimization"}
         </Button>
       </div>
 
