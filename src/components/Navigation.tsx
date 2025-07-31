@@ -17,7 +17,8 @@ import {
   Target,
   Zap,
   BarChart,
-  FileText
+  FileText,
+  HelpCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -27,22 +28,88 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
-  { name: "Strategy Lab", href: "/strategy", icon: TrendingUp },
-  { name: "News Sentiment", href: "/news", icon: Newspaper },
-  { name: "Watchlist", href: "/watchlist", icon: Eye },
-  { name: "AI Signals", href: "/signals", icon: Bot },
-  { name: "Portfolio", href: "/portfolio", icon: Briefcase },
-  { name: "Scenarios", href: "/scenarios", icon: Target },
-  { name: "Optimizer", href: "/optimizer", icon: Zap },
-  { name: "Simulations", href: "/simulations", icon: BarChart },
-  { name: "Reports", href: "/reports", icon: FileText },
-  { name: "Risk Manager", href: "/risk", icon: Shield },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { 
+    name: "Dashboard", 
+    href: "/", 
+    icon: BarChart3,
+    description: "Overview of your portfolio performance, market data, and key metrics"
+  },
+  { 
+    name: "Strategy Lab", 
+    href: "/strategy", 
+    icon: TrendingUp,
+    description: "Backtest trading strategies, browse templates, and optimize parameters"
+  },
+  { 
+    name: "News Sentiment", 
+    href: "/news", 
+    icon: Newspaper,
+    description: "AI-powered analysis of financial news and market sentiment"
+  },
+  { 
+    name: "Watchlist", 
+    href: "/watchlist", 
+    icon: Eye,
+    description: "Track and monitor your favorite stocks and assets"
+  },
+  { 
+    name: "AI Signals", 
+    href: "/signals", 
+    icon: Bot,
+    description: "AI-generated trading signals and market insights"
+  },
+  { 
+    name: "Portfolio", 
+    href: "/portfolio", 
+    icon: Briefcase,
+    description: "Manage your holdings, view performance, and track allocations"
+  },
+  { 
+    name: "Scenarios", 
+    href: "/scenarios", 
+    icon: Target,
+    description: "Create and analyze different market scenarios for stress testing"
+  },
+  { 
+    name: "Optimizer", 
+    href: "/optimizer", 
+    icon: Zap,
+    description: "Portfolio optimization using various objectives and constraints"
+  },
+  { 
+    name: "Simulations", 
+    href: "/simulations", 
+    icon: BarChart,
+    description: "Run Monte Carlo simulations to test portfolio performance"
+  },
+  { 
+    name: "Reports", 
+    href: "/reports", 
+    icon: FileText,
+    description: "Generate detailed reports and analytics on your investments"
+  },
+  { 
+    name: "Risk Manager", 
+    href: "/risk", 
+    icon: Shield,
+    description: "Monitor and manage portfolio risk metrics and exposures"
+  },
+  { 
+    name: "Settings", 
+    href: "/settings", 
+    icon: Settings,
+    description: "Manage your account settings and preferences"
+  },
 ];
 
 export default function Navigation() {
@@ -66,25 +133,34 @@ export default function Navigation() {
             </div>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:ml-8 md:flex md:space-x-1">
-              {navigation.map((item) => (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )
-                  }
-                >
-                  <item.icon className="h-4 w-4 mr-2" />
-                  {item.name}
-                </NavLink>
-              ))}
-            </div>
+            <TooltipProvider>
+              <div className="hidden md:ml-8 md:flex md:space-x-1">
+                {navigation.map((item) => (
+                  <Tooltip key={item.name}>
+                    <TooltipTrigger asChild>
+                      <NavLink
+                        to={item.href}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                            isActive
+                              ? "bg-primary text-primary-foreground"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                          )
+                        }
+                      >
+                        <item.icon className="h-4 w-4 mr-2" />
+                        {item.name}
+                        <HelpCircle className="h-3 w-3 ml-1 opacity-50" />
+                      </NavLink>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">{item.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </TooltipProvider>
           </div>
 
           {/* User Menu */}
@@ -131,22 +207,27 @@ export default function Navigation() {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 bg-muted/50">
             {navigation.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )
-                }
-                onClick={() => setIsOpen(false)}
-              >
-                <item.icon className="h-5 w-5 mr-3" />
-                {item.name}
-              </NavLink>
+              <div key={item.name} className="space-y-1">
+                <NavLink
+                  to={item.href}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )
+                  }
+                  onClick={() => setIsOpen(false)}
+                >
+                  <item.icon className="h-5 w-5 mr-3" />
+                  {item.name}
+                  <HelpCircle className="h-4 w-4 ml-1 opacity-50" />
+                </NavLink>
+                <p className="px-3 pb-2 text-xs text-muted-foreground/70">
+                  {item.description}
+                </p>
+              </div>
             ))}
             <div className="border-t border-border pt-3 mt-3">
               <Button
