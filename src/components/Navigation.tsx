@@ -149,7 +149,6 @@ export default function Navigation() {
                           )
                         }
                       >
-                        <item.icon className="h-4 w-4 mr-2" />
                         {item.name}
                         <HelpCircle className="h-3 w-3 ml-1 opacity-50" />
                       </NavLink>
@@ -220,7 +219,6 @@ export default function Navigation() {
                   }
                   onClick={() => setIsOpen(false)}
                 >
-                  <item.icon className="h-5 w-5 mr-3" />
                   {item.name}
                   <HelpCircle className="h-4 w-4 ml-1 opacity-50" />
                 </NavLink>
