@@ -20,17 +20,45 @@ serve(async (req) => {
 
     console.log('Fetching market data for:', symbols);
 
-    // Use Yahoo Finance API through server-side request
+    // Use a more reliable API approach with better headers
     const symbolsString = symbols.join(',');
-    const response = await fetch(
-      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsString}`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Accept': 'application/json',
+    
+    // Try multiple endpoints for better reliability
+    let response;
+    
+    // First try: Yahoo Finance with better headers
+    try {
+      response = await fetch(
+        `https://query1.finance.yahoo.com/v8/finance/chart/${symbolsString}?interval=1d&range=1d`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'cross-site',
+          }
         }
-      }
-    );
+      );
+    } catch (error) {
+      console.log('Primary API failed, trying alternative...');
+      
+      // Fallback: Try the quote endpoint
+      response = await fetch(
+        `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolsString}`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Referer': 'https://finance.yahoo.com/',
+            'Origin': 'https://finance.yahoo.com',
+          }
+        }
+      );
+    }
 
     if (!response.ok) {
       console.error('Yahoo Finance API error:', response.status, response.statusText);
@@ -59,19 +87,40 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    let quotes;
     
-    if (!data.quoteResponse || !data.quoteResponse.result) {
+    // Handle different API response formats
+    if (data.chart && data.chart.result) {
+      // Chart API format
+      quotes = data.chart.result.map(result => {
+        const meta = result.meta;
+        const currentPrice = meta.regularMarketPrice || meta.previousClose || 0;
+        const previousClose = meta.previousClose || currentPrice;
+        const change = currentPrice - previousClose;
+        const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
+        
+        return {
+          symbol: meta.symbol,
+          regularMarketPrice: currentPrice,
+          regularMarketChange: change,
+          regularMarketChangePercent: changePercent,
+          regularMarketTime: meta.regularMarketTime || Date.now() / 1000,
+          shortName: meta.longName || meta.symbol
+        };
+      });
+    } else if (data.quoteResponse && data.quoteResponse.result) {
+      // Quote API format
+      quotes = data.quoteResponse.result.map(quote => ({
+        symbol: quote.symbol,
+        regularMarketPrice: quote.regularMarketPrice || 0,
+        regularMarketChange: quote.regularMarketChange || 0,
+        regularMarketChangePercent: quote.regularMarketChangePercent || 0,
+        regularMarketTime: quote.regularMarketTime || Date.now() / 1000,
+        shortName: quote.shortName || quote.symbol
+      }));
+    } else {
       throw new Error('Invalid response format from Yahoo Finance');
     }
-
-    const quotes = data.quoteResponse.result.map(quote => ({
-      symbol: quote.symbol,
-      regularMarketPrice: quote.regularMarketPrice || 0,
-      regularMarketChange: quote.regularMarketChange || 0,
-      regularMarketChangePercent: quote.regularMarketChangePercent || 0,
-      regularMarketTime: quote.regularMarketTime || Date.now() / 1000,
-      shortName: quote.shortName || quote.symbol
-    }));
 
     console.log(`Successfully fetched ${quotes.length} quotes`);
 
