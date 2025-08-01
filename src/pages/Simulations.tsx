@@ -16,6 +16,7 @@ import {
   Target
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from "@/hooks/usePortfolio";
 
 interface SimulationRun {
   id: string;
@@ -81,6 +82,19 @@ export default function Simulations() {
   const [simulations, setSimulations] = useState<SimulationRun[]>(mockSimulations);
   const [selectedSim, setSelectedSim] = useState<string | null>(null);
   const [runningIntervals, setRunningIntervals] = useState<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Get user's portfolios and watchlist for simulation assets
+  const { data: portfolios } = useUserPortfolios();
+  const { data: watchlist } = useWatchlist();
+  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
+  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
+  
+  // Combine portfolio and watchlist symbols for simulations
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const userAssets = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  const simulationAssets = userAssets.length > 0 ? userAssets : ['SPY', 'QQQ', 'VTI'];
 
   // Cleanup intervals on unmount
   useEffect(() => {

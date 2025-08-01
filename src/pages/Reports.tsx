@@ -17,6 +17,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from "@/hooks/usePortfolio";
 
 interface Report {
   id: string;
@@ -78,6 +79,19 @@ export default function Reports() {
     allocationId: "",
     scenarioId: ""
   });
+
+  // Get user's portfolios and watchlist for report generation
+  const { data: portfolios } = useUserPortfolios();
+  const { data: watchlist } = useWatchlist();
+  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
+  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
+  
+  // Combine portfolio and watchlist symbols for reports
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const userAssets = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  const reportAssets = userAssets.length > 0 ? userAssets : ['SPY', 'QQQ', 'VTI'];
 
   const handleGenerateReport = async () => {
     if (!newReport.name.trim()) {

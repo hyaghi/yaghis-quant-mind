@@ -7,7 +7,7 @@ import SignalCard from "@/components/SignalCard";
 import PortfolioChart from "@/components/PortfolioChart";
 import FinancialNews from "@/components/FinancialNews";
 import { usePortfolioMetrics, useMarketOverview, useAISignals } from "@/hooks/useMarketData";
-import { useUserPortfolios } from "@/hooks/usePortfolio";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from "@/hooks/usePortfolio";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -25,12 +25,20 @@ export default function Dashboard() {
   const { data: portfolios, isLoading: portfoliosLoading } = useUserPortfolios();
   const portfolioMetrics = usePortfolioMetrics();
   const marketOverview = useMarketOverview();
-  // Get portfolio symbols for AI signals
-  const portfolioHoldings = portfolios?.flatMap(p => {
-    // This is a simplified approach - in real implementation you'd fetch holdings properly
-    return []; // Placeholder - the actual data comes from the TradingSignals component
-  }) || [];
-  const aiSignals = useAISignals(['AAPL', 'TSLA', 'SPY']); // This will be updated by TradingSignals component
+  
+  // Get user's actual portfolio and watchlist symbols for AI signals
+  const { data: watchlist } = useWatchlist();
+  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
+  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
+  
+  // Combine portfolio and watchlist symbols
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const userSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  const symbolsForSignals = userSymbols.length > 0 ? userSymbols : ['AAPL', 'TSLA', 'SPY'];
+  
+  const aiSignals = useAISignals(symbolsForSignals);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {

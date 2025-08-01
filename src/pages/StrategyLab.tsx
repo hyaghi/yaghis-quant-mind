@@ -16,6 +16,7 @@ import {
   Download,
   Settings
 } from "lucide-react";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from "@/hooks/usePortfolio";
 
 const strategyTemplates = [
   {
@@ -48,6 +49,19 @@ export default function StrategyLab() {
   const [selectedStrategy, setSelectedStrategy] = useState("momentum");
   const [backtestResults, setBacktestResults] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
+
+  // Get user's portfolios and watchlist for strategy testing
+  const { data: portfolios } = useUserPortfolios();
+  const { data: watchlist } = useWatchlist();
+  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
+  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
+  
+  // Combine portfolio and watchlist symbols for strategy testing
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const userAssets = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  const strategyAssets = userAssets.length > 0 ? userAssets : ['SPY', 'QQQ', 'VTI'];
 
   const runBacktest = async () => {
     setIsRunning(true);

@@ -79,7 +79,10 @@ export default function NewsSentimentDashboard() {
 
   // Get user's portfolios and watchlist
   const { data: portfolios } = useUserPortfolios();
-  const { data: holdings } = usePortfolioHoldings(portfolios?.[0]?.id || null);
+  // Use the "Husam" portfolio specifically (from your data)
+  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
+  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   const { data: watchlist } = useWatchlist();
   
   // Combine portfolio and watchlist symbols
