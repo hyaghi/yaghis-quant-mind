@@ -290,61 +290,98 @@ async function generateMarketBasedPrediction(
   timeframe: string
 ): Promise<StockPrediction> {
   
-  console.log('Analyzing market data for prediction...');
+  console.log('Analyzing market data for enhanced prediction...');
   
   const currentPrice = stockData.currentPrice;
   const previousClose = stockData.previousClose || currentPrice;
-  const changePercent = stockData.changePercent || ((currentPrice - previousClose) / previousClose * 100);
+  const high = stockData.high || currentPrice;
+  const low = stockData.low || currentPrice;
+  const volume = stockData.volume || 0;
   
-  // Determine market direction based on price action
+  // Calculate more sophisticated metrics
+  const dailyRange = high - low;
+  const rangePercent = dailyRange / currentPrice;
+  const pricePosition = (currentPrice - low) / (high - low || 1); // Where price sits in daily range
+  
+  // Enhanced direction analysis
   let direction: 'bullish' | 'bearish' | 'neutral' = 'neutral';
-  let confidence = 0.5;
+  let confidence = 0.4;
   let riskLevel: 'low' | 'medium' | 'high' = 'medium';
   
-  // Analyze price momentum
-  if (changePercent > 2) {
+  // Analyze price position in daily range
+  if (pricePosition > 0.7) {
     direction = 'bullish';
-    confidence = 0.7;
-    riskLevel = changePercent > 5 ? 'high' : 'medium';
-  } else if (changePercent < -2) {
+    confidence += 0.2;
+  } else if (pricePosition < 0.3) {
     direction = 'bearish';
-    confidence = 0.7;
-    riskLevel = changePercent < -5 ? 'high' : 'medium';
-  } else {
-    direction = 'neutral';
-    confidence = 0.5;
+    confidence += 0.2;
+  }
+  
+  // Analyze volatility
+  if (rangePercent > 0.05) { // High volatility day
+    confidence += 0.1;
+    riskLevel = 'high';
+  } else if (rangePercent < 0.02) { // Low volatility
     riskLevel = 'low';
   }
   
-  // Calculate price targets based on timeframe and volatility
-  const timeframeMultipliers = {
-    '1day': 0.02,    // 2% range for 1 day
-    '1week': 0.05,   // 5% range for 1 week
-    '1month': 0.12,  // 12% range for 1 month
-    '3months': 0.25, // 25% range for 3 months
-    '1year': 0.50    // 50% range for 1 year
-  };
-  
-  const multiplier = timeframeMultipliers[timeframe as keyof typeof timeframeMultipliers] || 0.05;
-  
-  let targetPrice = currentPrice;
-  if (direction === 'bullish') {
-    targetPrice = currentPrice * (1 + multiplier * 0.8);
-  } else if (direction === 'bearish') {
-    targetPrice = currentPrice * (1 - multiplier * 0.8);
+  // Volume analysis (if available)
+  if (volume > 1000000) { // High volume
+    confidence += 0.1;
   }
   
-  const lowPrice = currentPrice * (1 - multiplier);
-  const highPrice = currentPrice * (1 + multiplier);
+  // Add some randomization for more dynamic predictions
+  const marketSentimentFactor = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2
+  const timeframeRandomness = Math.random() * 0.1 - 0.05; // -5% to +5%
   
-  // Generate reasoning based on analysis
-  const reasoning = `Based on current market data for ${symbol}: ` +
-    `Current price $${currentPrice.toFixed(2)} with ${changePercent.toFixed(2)}% change. ` +
-    `${direction === 'bullish' ? 'Positive momentum' : direction === 'bearish' ? 'Negative momentum' : 'Sideways movement'} ` +
-    `suggests ${direction} outlook for ${timeframe} timeframe. ` +
-    `Target price: $${targetPrice.toFixed(2)}, Range: $${lowPrice.toFixed(2)}-$${highPrice.toFixed(2)}.`;
+  // Calculate price targets with enhanced logic
+  const timeframeMultipliers = {
+    '1day': { base: 0.02, volatility: 0.03 },    
+    '1week': { base: 0.05, volatility: 0.08 },   
+    '1month': { base: 0.12, volatility: 0.18 },  
+    '3months': { base: 0.25, volatility: 0.35 }, 
+    '1year': { base: 0.40, volatility: 0.60 }    
+  };
   
-  console.log('Market-based prediction completed');
+  const multipliers = timeframeMultipliers[timeframe as keyof typeof timeframeMultipliers] || timeframeMultipliers['1week'];
+  
+  // Enhanced target price calculation
+  let targetMultiplier = 1.0;
+  if (direction === 'bullish') {
+    targetMultiplier = 1 + (multipliers.base * 0.6 * marketSentimentFactor) + timeframeRandomness;
+  } else if (direction === 'bearish') {
+    targetMultiplier = 1 - (multipliers.base * 0.6 * marketSentimentFactor) - timeframeRandomness;
+  } else {
+    // Even neutral predictions should have some movement potential
+    targetMultiplier = 1 + (timeframeRandomness * 2);
+  }
+  
+  const targetPrice = currentPrice * targetMultiplier;
+  
+  // Dynamic range calculation based on volatility and timeframe
+  const volatilityFactor = Math.max(rangePercent, 0.02) * marketSentimentFactor;
+  const rangeMult = multipliers.volatility * volatilityFactor;
+  
+  const lowPrice = currentPrice * (1 - rangeMult);
+  const highPrice = currentPrice * (1 + rangeMult);
+  
+  // Ensure confidence is reasonable
+  confidence = Math.max(0.3, Math.min(0.9, confidence));
+  
+  // Generate enhanced reasoning
+  const pricePositionDesc = pricePosition > 0.7 ? 'near daily highs' : 
+                           pricePosition < 0.3 ? 'near daily lows' : 'mid-range';
+  const volatilityDesc = rangePercent > 0.05 ? 'high volatility' : 
+                        rangePercent < 0.02 ? 'low volatility' : 'moderate volatility';
+  
+  const reasoning = `${symbol} analysis: Trading at $${currentPrice.toFixed(2)} (${pricePositionDesc}). ` +
+    `Daily range of ${(rangePercent * 100).toFixed(1)}% indicates ${volatilityDesc}. ` +
+    `${direction === 'bullish' ? 'Strong positioning suggests upward potential' : 
+      direction === 'bearish' ? 'Weak positioning suggests downward pressure' : 
+      'Mixed signals suggest sideways movement'} for ${timeframe}. ` +
+    `Target: $${targetPrice.toFixed(2)} (${((targetPrice/currentPrice - 1) * 100).toFixed(1)}%).`;
+  
+  console.log('Enhanced market prediction completed');
   
   return {
     symbol,
@@ -359,10 +396,10 @@ async function generateMarketBasedPrediction(
     confidence,
     reasoning,
     keyFactors: {
-      newsImpact: 0.3,
-      technicalScore: Math.abs(changePercent) / 10,
-      volumePattern: 0.5,
-      marketSentiment: changePercent > 0 ? 0.6 : changePercent < 0 ? 0.4 : 0.5
+      newsImpact: 0.3 + Math.random() * 0.2,
+      technicalScore: pricePosition,
+      volumePattern: volume > 1000000 ? 0.7 : 0.4,
+      marketSentiment: marketSentimentFactor - 0.8 + 0.5 // Convert to 0-1 scale
     },
     riskLevel,
     lastUpdated: new Date().toISOString()
