@@ -157,39 +157,27 @@ async function analyzeRecentNews(symbol: string): Promise<NewsAnalysis> {
       };
     }
 
-    // Analyze sentiment using OpenAI
+    // Analyze sentiment using OpenAI with retry logic
     const newsTexts = news.slice(0, 10).map((item: any) => 
       `${item.headline} ${item.summary || ''}`
     ).join('\n');
 
-    const sentimentResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a financial news analyst. Analyze the sentiment of news articles and return a JSON response with sentiment (positive/negative/neutral), score (-1 to 1), and key topics array.'
-          },
-          {
-            role: 'user',
-            content: `Analyze the sentiment of these recent news articles for ${symbol}:\n${newsTexts}`
-          }
-        ],
-        temperature: 0.3
-      }),
+    const sentimentResponse = await makeOpenAIRequest({
+      model: 'gpt-4.1-2025-04-14',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a financial news analyst. Analyze the sentiment of news articles and return a JSON response with sentiment (positive/negative/neutral), score (-1 to 1), and key topics array.'
+        },
+        {
+          role: 'user',
+          content: `Analyze the sentiment of these recent news articles for ${symbol}:\n${newsTexts}`
+        }
+      ],
+      temperature: 0.3
     });
 
-    const sentimentData = await sentimentResponse.json();
-    
-    if (!sentimentData.choices || sentimentData.choices.length === 0) {
-      throw new Error('No response from OpenAI');
-    }
-    
+    const sentimentData = sentimentResponse;
     const analysis = JSON.parse(sentimentData.choices[0].message.content);
 
     return {
@@ -311,34 +299,22 @@ Provide a prediction for the ${timeframe} timeframe in JSON format with:
 `;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a professional stock analyst with expertise in technical analysis, fundamental analysis, and market sentiment. Provide accurate, data-driven predictions.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.2
-      }),
+    const response = await makeOpenAIRequest({
+      model: 'gpt-4.1-2025-04-14',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a professional stock analyst with expertise in technical analysis, fundamental analysis, and market sentiment. Provide accurate, data-driven predictions.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.2
     });
 
-    const data = await response.json();
-    
-    if (!data.choices || data.choices.length === 0) {
-      throw new Error('No response from OpenAI');
-    }
-    
+    const data = response;
     const aiPrediction = JSON.parse(data.choices[0].message.content);
 
     return {
@@ -422,6 +398,56 @@ function calculateRSI(prices: number[], period: number): number[] {
   }
 
   return rsi;
+}
+
+// Rate limiting and retry logic for OpenAI API
+async function makeOpenAIRequest(requestBody: any, retries = 3): Promise<any> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.status === 429) {
+        // Rate limit exceeded, wait before retrying
+        const waitTime = Math.pow(2, attempt) * 1000; // Exponential backoff
+        console.log(`Rate limit exceeded, waiting ${waitTime}ms before retry ${attempt}/${retries}`);
+        
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        } else {
+          throw new Error('Rate limit exceeded - max retries reached');
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error('No response from OpenAI');
+      }
+
+      return data;
+    } catch (error) {
+      if (attempt === retries) {
+        throw error;
+      }
+      
+      // Wait before retrying for other errors too
+      const waitTime = Math.pow(2, attempt) * 500;
+      console.log(`Request failed, retrying in ${waitTime}ms. Attempt ${attempt}/${retries}`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
 }
 
 function calculateVolatility(prices: number[]): number {
