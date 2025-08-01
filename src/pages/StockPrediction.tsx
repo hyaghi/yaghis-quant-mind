@@ -32,7 +32,7 @@ interface StockPrediction {
     high: number;
     target: number;
   };
-  timeframe: '1day' | '1week' | '1month';
+  timeframe: '1day' | '1week' | '1month' | '1year';
   confidence: number;
   reasoning: string;
   keyFactors: {
@@ -228,6 +228,7 @@ export default function StockPrediction() {
                   <SelectItem value="1day">1 Day</SelectItem>
                   <SelectItem value="1week">1 Week</SelectItem>
                   <SelectItem value="1month">1 Month</SelectItem>
+                  <SelectItem value="1year">1 Year</SelectItem>
                 </SelectContent>
               </Select>
             </div>
