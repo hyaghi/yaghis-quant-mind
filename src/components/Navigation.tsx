@@ -19,7 +19,8 @@ import {
   BarChart,
   FileText,
   HelpCircle,
-  Users
+  Users,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -38,85 +39,106 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-const navigation = [
-  { 
-    name: "Dashboard", 
-    href: "/", 
+const mainNavigation = [
+  {
+    name: "Dashboard",
+    href: "/",
     icon: BarChart3,
-    description: "Overview of your portfolio performance, market data, and key metrics"
+    description: "Overview of your portfolio performance and market data"
   },
-  { 
-    name: "Strategy Lab", 
-    href: "/strategy", 
+  {
+    name: "Analysis",
     icon: TrendingUp,
-    description: "Backtest trading strategies, browse templates, and optimize parameters"
+    description: "Market analysis and trading tools",
+    submenu: [
+      { 
+        name: "News Sentiment", 
+        href: "/news", 
+        icon: Newspaper,
+        description: "AI-powered analysis of financial news and market sentiment"
+      },
+      { 
+        name: "AI Signals", 
+        href: "/signals", 
+        icon: Bot,
+        description: "AI-generated trading signals and market insights"
+      },
+      { 
+        name: "Strategy Lab", 
+        href: "/strategy", 
+        icon: TrendingUp,
+        description: "Backtest trading strategies and optimize parameters"
+      },
+      { 
+        name: "Watchlist", 
+        href: "/watchlist", 
+        icon: Eye,
+        description: "Track and monitor your favorite stocks and assets"
+      }
+    ]
   },
-  { 
-    name: "News Sentiment", 
-    href: "/news", 
-    icon: Newspaper,
-    description: "AI-powered analysis of financial news and market sentiment"
-  },
-  { 
-    name: "Watchlist", 
-    href: "/watchlist", 
-    icon: Eye,
-    description: "Track and monitor your favorite stocks and assets"
-  },
-  { 
-    name: "AI Signals", 
-    href: "/signals", 
-    icon: Bot,
-    description: "AI-generated trading signals and market insights"
-  },
-  { 
-    name: "Portfolio", 
-    href: "/portfolio", 
+  {
+    name: "Portfolio",
     icon: Briefcase,
-    description: "Manage your holdings, view performance, and track allocations"
+    description: "Portfolio management and optimization tools",
+    submenu: [
+      { 
+        name: "My Portfolio", 
+        href: "/portfolio", 
+        icon: Briefcase,
+        description: "Manage your holdings, view performance, and track allocations"
+      },
+      { 
+        name: "Optimizer", 
+        href: "/optimizer", 
+        icon: Zap,
+        description: "Portfolio optimization using various objectives and constraints"
+      },
+      { 
+        name: "Simulations", 
+        href: "/simulations", 
+        icon: BarChart,
+        description: "Run Monte Carlo simulations to test portfolio performance"
+      },
+      { 
+        name: "Scenarios", 
+        href: "/scenarios", 
+        icon: Target,
+        description: "Create and analyze different market scenarios for stress testing"
+      },
+      { 
+        name: "Risk Manager", 
+        href: "/risk", 
+        icon: Shield,
+        description: "Monitor and manage portfolio risk metrics and exposures"
+      },
+      { 
+        name: "Reports", 
+        href: "/reports", 
+        icon: FileText,
+        description: "Generate detailed reports and analytics on your investments"
+      }
+    ]
   },
-  { 
-    name: "Scenarios", 
-    href: "/scenarios", 
-    icon: Target,
-    description: "Create and analyze different market scenarios for stress testing"
-  },
-  { 
-    name: "Optimizer", 
-    href: "/optimizer", 
-    icon: Zap,
-    description: "Portfolio optimization using various objectives and constraints"
-  },
-  { 
-    name: "Simulations", 
-    href: "/simulations", 
-    icon: BarChart,
-    description: "Run Monte Carlo simulations to test portfolio performance"
-  },
-  { 
-    name: "Reports", 
-    href: "/reports", 
-    icon: FileText,
-    description: "Generate detailed reports and analytics on your investments"
-  },
-  { 
-    name: "Risk Manager", 
-    href: "/risk", 
-    icon: Shield,
-    description: "Monitor and manage portfolio risk metrics and exposures"
-  },
-  { 
-    name: "Community", 
-    href: "/community", 
-    icon: Users,
-    description: "Connect with fellow investors, share insights, and learn together"
-  },
-  { 
-    name: "Settings", 
-    href: "/settings", 
+  {
+    name: "More",
     icon: Settings,
-    description: "Manage your account settings and preferences"
-  },
+    description: "Community and account settings",
+    submenu: [
+      { 
+        name: "Community", 
+        href: "/community", 
+        icon: Users,
+        description: "Connect with fellow investors, share insights, and learn together"
+      },
+      { 
+        name: "Settings", 
+        href: "/settings", 
+        icon: Settings,
+        description: "Manage your account settings and preferences"
+      }
+    ]
+  }
 ];
 
 export default function Navigation() {
@@ -142,28 +164,83 @@ export default function Navigation() {
             {/* Desktop Navigation */}
             <TooltipProvider>
               <div className="hidden md:ml-8 md:flex md:space-x-1">
-                {navigation.map((item) => (
-                  <Tooltip key={item.name}>
-                    <TooltipTrigger asChild>
-                      <NavLink
-                        to={item.href}
-                        className={({ isActive }) =>
-                          cn(
-                            "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                            isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                          )
-                        }
-                      >
-                        {item.name}
-                        <HelpCircle className="h-3 w-3 ml-1 opacity-50" />
-                      </NavLink>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">{item.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                {mainNavigation.map((item) => (
+                  <div key={item.name}>
+                    {item.href ? (
+                      // Simple navigation item (Dashboard)
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <NavLink
+                            to={item.href}
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                                isActive
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )
+                            }
+                          >
+                            <item.icon className="h-4 w-4 mr-2" />
+                            {item.name}
+                            <HelpCircle className="h-3 w-3 ml-1 opacity-50" />
+                          </NavLink>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">{item.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      // Dropdown navigation item
+                      <DropdownMenu>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors text-muted-foreground hover:text-foreground hover:bg-muted h-auto"
+                              >
+                                <item.icon className="h-4 w-4 mr-2" />
+                                {item.name}
+                                <ChevronDown className="h-3 w-3 ml-1 opacity-50" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">{item.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                        <DropdownMenuContent 
+                          align="start" 
+                          className="w-64 bg-background border border-border shadow-lg z-50"
+                        >
+                          {item.submenu?.map((subItem) => (
+                            <DropdownMenuItem key={subItem.name} className="p-0">
+                              <NavLink
+                                to={subItem.href}
+                                className={({ isActive }) =>
+                                  cn(
+                                    "flex items-start px-3 py-3 w-full rounded-md transition-colors",
+                                    isActive
+                                      ? "bg-primary text-primary-foreground"
+                                      : "hover:bg-muted"
+                                  )
+                                }
+                              >
+                                <subItem.icon className="h-4 w-4 mr-3 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <div className="font-medium">{subItem.name}</div>
+                                  <div className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                                    {subItem.description}
+                                  </div>
+                                </div>
+                              </NavLink>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 ))}
               </div>
             </TooltipProvider>
@@ -211,27 +288,63 @@ export default function Navigation() {
       {/* Mobile Navigation */}
       {isOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 bg-muted/50">
-            {navigation.map((item) => (
+          <div className="px-2 pt-2 pb-3 space-y-1 bg-background border-t border-border">
+            {mainNavigation.map((item) => (
               <div key={item.name} className="space-y-1">
-                <NavLink
-                  to={item.href}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                    )
-                  }
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item.name}
-                  <HelpCircle className="h-4 w-4 ml-1 opacity-50" />
-                </NavLink>
-                <p className="px-3 pb-2 text-xs text-muted-foreground/70">
-                  {item.description}
-                </p>
+                {item.href ? (
+                  // Simple navigation item (Dashboard)
+                  <>
+                    <NavLink
+                      to={item.href}
+                      className={({ isActive }) =>
+                        cn(
+                          "flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors",
+                          isActive
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                        )
+                      }
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <item.icon className="h-5 w-5 mr-3" />
+                      {item.name}
+                      <HelpCircle className="h-4 w-4 ml-2 opacity-50" />
+                    </NavLink>
+                    <p className="px-3 pb-2 text-xs text-muted-foreground/70">
+                      {item.description}
+                    </p>
+                  </>
+                ) : (
+                  // Dropdown section for mobile
+                  <div className="space-y-1">
+                    <div className="flex items-center px-3 py-2 text-base font-medium text-foreground border-b border-border">
+                      <item.icon className="h-5 w-5 mr-3" />
+                      {item.name}
+                    </div>
+                    {item.submenu?.map((subItem) => (
+                      <div key={subItem.name} className="ml-4 space-y-1">
+                        <NavLink
+                          to={subItem.href}
+                          className={({ isActive }) =>
+                            cn(
+                              "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                              isActive
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            )
+                          }
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <subItem.icon className="h-4 w-4 mr-3" />
+                          {subItem.name}
+                        </NavLink>
+                        <p className="px-3 pb-1 text-xs text-muted-foreground/70">
+                          {subItem.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             <div className="border-t border-border pt-3 mt-3">
