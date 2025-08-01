@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,12 +54,39 @@ export default function StockPrediction() {
 
   // Get user's portfolio symbols for quick selection
   const { data: portfolios } = useUserPortfolios();
-  const selectedPortfolioId = portfolios?.[0]?.id || null;
-  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   const { data: watchlist } = useWatchlist();
   
+  // State to store all holdings from all portfolios
+  const [allHoldings, setAllHoldings] = useState<any[]>([]);
+  
+  // Fetch holdings from all portfolios
+  useEffect(() => {
+    const fetchAllHoldings = async () => {
+      if (!portfolios || portfolios.length === 0) return;
+      
+      try {
+        const holdingsPromises = portfolios.map(async (portfolio) => {
+          const { data: holdings } = await supabase
+            .from('portfolio_holdings')
+            .select('*')
+            .eq('portfolio_id', portfolio.id);
+          return holdings || [];
+        });
+        
+        const allPortfolioHoldings = await Promise.all(holdingsPromises);
+        const flattenedHoldings = allPortfolioHoldings.flat();
+        setAllHoldings(flattenedHoldings);
+      } catch (error) {
+        console.error('Error fetching portfolio holdings:', error);
+      }
+    };
+    
+    fetchAllHoldings();
+  }, [portfolios]);
+  
+  // Create unique list of symbols from all portfolio holdings and watchlist
   const userSymbols = [
-    ...(holdings?.map(h => h.symbol) || []),
+    ...allHoldings.map(h => h.symbol),
     ...(watchlist?.map(w => w.symbol) || [])
   ].filter((symbol, index, arr) => arr.indexOf(symbol) === index);
 
