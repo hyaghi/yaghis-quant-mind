@@ -1,14 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   subscribed: boolean;
+  biometricSupported: boolean;
   checkSubscription: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithBiometrics: () => Promise<{ error: any }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -21,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [subscribed, setSubscribed] = useState(false);
+  const { isSupported: biometricSupported, authenticate } = useBiometricAuth();
 
   const checkSubscription = async () => {
     if (!user || !session) {
@@ -81,6 +85,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const signInWithBiometrics = async () => {
+    try {
+      // First check if user has stored credentials (in real app, you'd store these securely)
+      const storedEmail = localStorage.getItem('biometric_email');
+      const storedPassword = localStorage.getItem('biometric_password');
+      
+      if (!storedEmail || !storedPassword) {
+        return { error: { message: 'No biometric credentials stored. Please sign in normally first and enable biometric login in settings.' } };
+      }
+
+      // Authenticate with biometrics
+      const biometricResult = await authenticate({
+        title: 'Sign In',
+        subtitle: 'Use your biometric to sign in',
+        description: 'Authenticate to access your account'
+      });
+
+      if (!biometricResult) {
+        return { error: { message: 'Biometric authentication failed' } };
+      }
+
+      // If biometric auth succeeds, sign in with stored credentials
+      const { error } = await supabase.auth.signInWithPassword({
+        email: storedEmail,
+        password: storedPassword,
+      });
+
+      return { error };
+    } catch (error: any) {
+      return { error };
+    }
+  };
+
   const signUp = async (email: string, password: string, displayName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
@@ -115,8 +152,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     subscribed,
+    biometricSupported,
     checkSubscription,
     signIn,
+    signInWithBiometrics,
     signUp,
     resetPassword,
     signOut,

@@ -7,11 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, TrendingUp } from 'lucide-react';
+import { Eye, EyeOff, TrendingUp, Fingerprint } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function Auth() {
-  const { user, signIn, signUp, resetPassword, loading } = useAuth();
+  const { user, signIn, signInWithBiometrics, biometricSupported, signUp, resetPassword, loading } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -80,6 +80,34 @@ export default function Auth() {
       toast({
         title: "An error occurred",
         description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBiometricSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await signInWithBiometrics();
+      
+      if (error) {
+        toast({
+          title: "Biometric sign in failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Welcome back!",
+          description: "Signed in with biometrics successfully.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "An error occurred",
+        description: "Please try again or use email/password.",
         variant: "destructive",
       });
     } finally {
@@ -376,6 +404,19 @@ export default function Auth() {
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
                   </Button>
+                  
+                  {biometricSupported && (
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleBiometricSignIn}
+                      disabled={isLoading}
+                    >
+                      <Fingerprint className="h-4 w-4 mr-2" />
+                      {isLoading ? "Authenticating..." : "Sign In with Biometrics"}
+                    </Button>
+                  )}
                   
                   <div className="text-center">
                     <Button

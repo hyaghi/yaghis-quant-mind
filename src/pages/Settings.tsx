@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -16,16 +17,20 @@ import {
   Palette,
   Globe,
   Download,
-  Trash2
+  Trash2,
+  Fingerprint
 } from "lucide-react";
 
 export default function Settings() {
-  const { user, resetPassword } = useAuth();
+  const { user, resetPassword, biometricSupported } = useAuth();
   const { toast } = useToast();
   const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [biometricEnabled, setBiometricEnabled] = useState(() => {
+    return localStorage.getItem('biometric_email') !== null;
+  });
 
   const handleDisplayNameUpdate = async () => {
     toast({
@@ -76,6 +81,35 @@ export default function Settings() {
       title: "Feature coming soon",
       description: "Profile picture upload will be available soon.",
     });
+  };
+
+  const handleBiometricToggle = async (enabled: boolean) => {
+    if (enabled) {
+      // Enable biometric - store credentials securely
+      // In a real app, you'd use a more secure method
+      if (user?.email) {
+        // For demonstration, we'll prompt for password
+        const password = window.prompt("Enter your password to enable biometric login:");
+        if (password) {
+          localStorage.setItem('biometric_email', user.email);
+          localStorage.setItem('biometric_password', password);
+          setBiometricEnabled(true);
+          toast({
+            title: "Biometric login enabled",
+            description: "You can now sign in using biometrics.",
+          });
+        }
+      }
+    } else {
+      // Disable biometric - remove stored credentials
+      localStorage.removeItem('biometric_email');
+      localStorage.removeItem('biometric_password');
+      setBiometricEnabled(false);
+      toast({
+        title: "Biometric login disabled",
+        description: "Biometric authentication has been turned off.",
+      });
+    }
   };
 
   return (
@@ -154,6 +188,29 @@ export default function Settings() {
                   Email cannot be changed. Contact support if needed.
                 </p>
               </div>
+
+              {biometricSupported && (
+                <>
+                  <Separator />
+                  
+                  {/* Biometric Authentication */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium flex items-center gap-2">
+                        <Fingerprint className="h-4 w-4" />
+                        Biometric Authentication
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Use fingerprint or facial recognition to sign in
+                      </p>
+                    </div>
+                    <Switch
+                      checked={biometricEnabled}
+                      onCheckedChange={handleBiometricToggle}
+                    />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
