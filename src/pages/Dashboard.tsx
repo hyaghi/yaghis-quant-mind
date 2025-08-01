@@ -32,11 +32,12 @@ export default function Dashboard() {
   const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   
-  // Combine portfolio and watchlist symbols
+  // Dashboard AI signals should show both portfolio and watchlist
+  // (You want signals for what you own AND what you're watching)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
   const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
-  const userSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
-  const symbolsForSignals = userSymbols.length > 0 ? userSymbols : ['AAPL', 'TSLA', 'SPY'];
+  const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  const symbolsForSignals = allSymbols.length > 0 ? allSymbols : ['AAPL', 'TSLA', 'SPY'];
   
   const aiSignals = useAISignals(symbolsForSignals);
 

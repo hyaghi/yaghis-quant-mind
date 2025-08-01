@@ -87,11 +87,13 @@ export default function Reports() {
   const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   
-  // Combine portfolio and watchlist symbols for reports
+  // Reports should focus on ACTUAL portfolio holdings
+  // (You generate reports on what you actually own)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
-  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
-  const userAssets = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
-  const reportAssets = userAssets.length > 0 ? userAssets : ['SPY', 'QQQ', 'VTI'];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || []; // Available for reference
+  
+  // Primary assets for reports (your actual holdings)
+  const reportAssets = portfolioSymbols.length > 0 ? portfolioSymbols : ['SPY', 'QQQ', 'VTI'];
 
   const handleGenerateReport = async () => {
     if (!newReport.name.trim()) {

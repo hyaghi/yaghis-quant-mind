@@ -17,7 +17,8 @@ export default function TradingSignals() {
   const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   
-  // Combine portfolio and watchlist symbols
+  // Combine portfolio and watchlist symbols for trading signals
+  // (Makes sense to get signals for both what you own AND what you're watching)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
   const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
   const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];

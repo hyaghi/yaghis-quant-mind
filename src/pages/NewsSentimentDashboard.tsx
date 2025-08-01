@@ -85,13 +85,14 @@ export default function NewsSentimentDashboard() {
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   const { data: watchlist } = useWatchlist();
   
-  // Combine portfolio and watchlist symbols
+  // News sentiment can cover both portfolio and watchlist 
+  // (You want news on what you own AND what you're considering)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
   const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
   const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
   
   // Fallback to default symbols if user has no portfolio/watchlist
-  const userSymbols = allSymbols.length > 0 ? allSymbols : ['SPY', 'QQQ', 'VTI'];
+  const symbols = allSymbols.length > 0 ? allSymbols : ['AAPL', 'TSLA', 'MSFT'];
 
   const fetchNews = async () => {
     try {
@@ -99,7 +100,7 @@ export default function NewsSentimentDashboard() {
       
       const { data, error } = await supabase.functions.invoke('analyze-financial-news', {
         body: {
-          tickers: userSymbols,
+          tickers: symbols,
           sectors: ['AI', 'technology', 'energy', 'finance', 'healthcare', 'automotive']
         }
       });

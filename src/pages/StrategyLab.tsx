@@ -57,11 +57,14 @@ export default function StrategyLab() {
   const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   
-  // Combine portfolio and watchlist symbols for strategy testing
+  // Strategy Lab can test strategies on both portfolio and watchlist
+  // (You might want to test strategies on what you own AND what you're considering)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
   const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
-  const userAssets = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
-  const strategyAssets = userAssets.length > 0 ? userAssets : ['SPY', 'QQQ', 'VTI'];
+  const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  
+  // Assets for strategy testing
+  const strategyAssets = allSymbols.length > 0 ? allSymbols : ['SPY', 'QQQ', 'VTI'];
 
   const runBacktest = async () => {
     setIsRunning(true);

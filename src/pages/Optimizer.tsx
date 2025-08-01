@@ -75,13 +75,13 @@ export default function Optimizer() {
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   const { data: watchlist } = useWatchlist();
   
-  // Combine portfolio and watchlist symbols
+  // Portfolio Optimizer should focus on ACTUAL holdings, not watchlist
+  // (You optimize what you own, not what you're just watching)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
-  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
-  const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || []; // Available for reference
   
-  // Fallback to default symbols if user has no portfolio/watchlist
-  const selectedAssets = allSymbols.length > 0 ? allSymbols : ['SPY', 'QQQ', 'VTI', 'IEF', 'GLD'];
+  // Primary assets for optimization (your actual holdings)
+  const selectedAssets = portfolioSymbols.length > 0 ? portfolioSymbols : ['SPY', 'QQQ', 'VTI', 'IEF', 'GLD'];
   
   const [config, setConfig] = useState<OptimizerConfig>({
     objective: "maxSharpe",
