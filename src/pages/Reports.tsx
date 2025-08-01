@@ -83,17 +83,15 @@ export default function Reports() {
   // Get user's portfolios and watchlist for report generation
   const { data: portfolios } = useUserPortfolios();
   const { data: watchlist } = useWatchlist();
-  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
-  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const selectedPortfolioId = portfolios?.[0]?.id || null;
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   
   // Reports should focus on ACTUAL portfolio holdings
-  // (You generate reports on what you actually own)
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
-  const watchlistSymbols = watchlist?.map(w => w.symbol) || []; // Available for reference
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
   
-  // Primary assets for reports (your actual holdings)
-  const reportAssets = portfolioSymbols.length > 0 ? portfolioSymbols : ['SPY', 'QQQ', 'VTI'];
+  // Display user's actual holdings in reports
+  const reportAssets = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
 
   const handleGenerateReport = async () => {
     if (!newReport.name.trim()) {
@@ -197,7 +195,7 @@ export default function Reports() {
                 Generate New Report
               </CardTitle>
               <CardDescription>
-                Configure and generate a comprehensive portfolio analysis report
+                Generate reports for your portfolio: {reportAssets.length > 0 ? reportAssets.join(', ') : 'No assets found'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -239,9 +237,14 @@ export default function Reports() {
                       <SelectValue placeholder="Select allocation..." />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="conservative">Conservative Balanced</SelectItem>
-                      <SelectItem value="growth">Aggressive Growth</SelectItem>
-                      <SelectItem value="riskparity">Equal Risk Contribution</SelectItem>
+                      {portfolios?.map((portfolio) => (
+                        <SelectItem key={portfolio.id} value={portfolio.id}>
+                          {portfolio.name} Portfolio
+                        </SelectItem>
+                      ))}
+                      {portfolios?.length === 0 && (
+                        <SelectItem value="none" disabled>No portfolios found</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

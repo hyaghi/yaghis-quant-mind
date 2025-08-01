@@ -79,19 +79,16 @@ export default function NewsSentimentDashboard() {
 
   // Get user's portfolios and watchlist
   const { data: portfolios } = useUserPortfolios();
-  // Use the "Husam" portfolio specifically (from your data)
-  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
-  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const selectedPortfolioId = portfolios?.[0]?.id || null;
   const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   const { data: watchlist } = useWatchlist();
   
-  // News sentiment can cover both portfolio and watchlist 
-  // (You want news on what you own AND what you're considering)
+  // News sentiment covers both portfolio and watchlist symbols
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];
   const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
   const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
   
-  // Fallback to default symbols if user has no portfolio/watchlist
+  // Use actual user symbols
   const symbols = allSymbols.length > 0 ? allSymbols : ['AAPL', 'TSLA', 'MSFT'];
 
   const fetchNews = async () => {
@@ -251,7 +248,7 @@ export default function NewsSentimentDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">News Sentiment Dashboard</h1>
           <p className="text-muted-foreground mt-1">
-            AI-powered financial news analysis and trading signals
+            AI-powered financial news analysis for your portfolio: {symbols.join(', ')}
           </p>
         </div>
         <div className="flex items-center space-x-2 mt-4 sm:mt-0">

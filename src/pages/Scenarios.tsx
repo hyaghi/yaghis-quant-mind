@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Target, TrendingDown, Calendar, BarChart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from "@/hooks/usePortfolio";
 
 interface ScenarioConfig {
   horizonDays: number;
@@ -51,6 +52,17 @@ const macroShockPresets = [
 
 export default function Scenarios() {
   const { toast } = useToast();
+  
+  // Get user's portfolio data for scenario testing
+  const { data: portfolios } = useUserPortfolios();
+  const selectedPortfolioId = portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
+  const { data: watchlist } = useWatchlist();
+  
+  // Get symbols for scenario testing
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const userSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
   const [scenarioName, setScenarioName] = useState("");
   const [config, setConfig] = useState<ScenarioConfig>({
     horizonDays: 252,
@@ -137,7 +149,7 @@ export default function Scenarios() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Scenario Engine</h1>
           <p className="text-muted-foreground">
-            Build stress test scenarios for portfolio optimization
+            Build stress test scenarios for your portfolio: {userSymbols.length > 0 ? userSymbols.join(', ') : 'No portfolio assets found'}
           </p>
         </div>
         <Button onClick={handleSaveScenario} className="flex items-center gap-2">
