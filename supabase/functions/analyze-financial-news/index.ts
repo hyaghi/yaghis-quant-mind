@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const finnhubApiKey = Deno.env.get('FINNHUB_API_KEY');
+const marketstackApiKey = Deno.env.get('MARKETSTACK_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
@@ -210,11 +210,12 @@ serve(async (req) => {
     const { tickers = ['AAPL', 'TSLA', 'SPY', 'QQQ'], sectors = ['AI', 'energy', 'tech'] } = await req.json();
 
     console.log('Environment check:');
-    console.log('FINNHUB_API_KEY available:', !!finnhubApiKey);
+    console.log('FINNHUB_API_KEY available:', !!Deno.env.get('FINNHUB_API_KEY'));
     console.log('OPENAI_API_KEY available:', !!openAIApiKey);
-    console.log('FINNHUB_API_KEY length:', finnhubApiKey ? finnhubApiKey.length : 0);
+    console.log('FINNHUB_API_KEY length:', Deno.env.get('FINNHUB_API_KEY') ? Deno.env.get('FINNHUB_API_KEY')!.length : 0);
     console.log('OPENAI_API_KEY length:', openAIApiKey ? openAIApiKey.length : 0);
 
+    const finnhubApiKey = Deno.env.get('FINNHUB_API_KEY');
     if (!finnhubApiKey) {
       throw new Error('FINNHUB_API_KEY not configured - please add it in Supabase Edge Function Secrets');
     }
@@ -341,7 +342,7 @@ Respond in JSON format:
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'gpt-4.1-2025-04-14',
+              model: 'gpt-4o-mini',
               messages: [
                 {
                   role: 'system',

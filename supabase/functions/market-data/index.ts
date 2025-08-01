@@ -30,7 +30,7 @@ serve(async (req) => {
     const symbolsString = symbols.join(',');
     
     const response = await fetch(
-      `http://api.marketstack.com/v1/eod/latest?access_key=${apiKey}&symbols=${symbolsString}`,
+      `https://api.marketstack.com/v1/eod/latest?access_key=${apiKey}&symbols=${symbolsString}`,
       {
         headers: {
           'Accept': 'application/json',
@@ -93,7 +93,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       data: quotes,
-      source: 'yahoo',
+      source: 'marketstack',
       lastUpdated: new Date().toISOString()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
