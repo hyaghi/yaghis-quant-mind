@@ -11,6 +11,7 @@ import { Zap, Target, TrendingUp, Shield, BarChart3, Settings } from "lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { useOptimizePortfolio } from "@/hooks/useOptimization";
 import { useScenarioSets } from "@/hooks/useScenarios";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from '@/hooks/usePortfolio';
 
 interface OptimizerConfig {
   objective: string;
@@ -65,6 +66,19 @@ export default function Optimizer() {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<OptimizationResult[]>([]);
+
+  // Get user's portfolios and watchlist
+  const { data: portfolios } = useUserPortfolios();
+  const { data: holdings } = usePortfolioHoldings(portfolios?.[0]?.id || null);
+  const { data: watchlist } = useWatchlist();
+  
+  // Combine portfolio and watchlist symbols
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  
+  // Fallback to default symbols if user has no portfolio/watchlist
+  const selectedAssets = allSymbols.length > 0 ? allSymbols : ['SPY', 'QQQ', 'VTI', 'IEF', 'GLD'];
   
   const [config, setConfig] = useState<OptimizerConfig>({
     objective: "maxSharpe",
@@ -76,7 +90,6 @@ export default function Optimizer() {
 
 
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>("");
-  const [selectedAssets] = useState(["AAPL", "MSFT", "GOOGL", "IEF", "GLD", "CASH"]);
 
   const handleOptimize = async () => {
     setIsOptimizing(true);

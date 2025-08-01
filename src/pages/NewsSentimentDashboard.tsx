@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from '@/hooks/usePortfolio';
 
 interface AnalyzedNews {
   title: string;
@@ -76,13 +77,26 @@ export default function NewsSentimentDashboard() {
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const { toast } = useToast();
 
+  // Get user's portfolios and watchlist
+  const { data: portfolios } = useUserPortfolios();
+  const { data: holdings } = usePortfolioHoldings(portfolios?.[0]?.id || null);
+  const { data: watchlist } = useWatchlist();
+  
+  // Combine portfolio and watchlist symbols
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  
+  // Fallback to default symbols if user has no portfolio/watchlist
+  const userSymbols = allSymbols.length > 0 ? allSymbols : ['SPY', 'QQQ', 'VTI'];
+
   const fetchNews = async () => {
     try {
       setIsLoading(true);
       
       const { data, error } = await supabase.functions.invoke('analyze-financial-news', {
         body: {
-          tickers: ['AAPL', 'TSLA', 'NVDA', 'SPY', 'QQQ', 'MSFT', 'AMZN', 'GOOGL', 'META'],
+          tickers: userSymbols,
           sectors: ['AI', 'technology', 'energy', 'finance', 'healthcare', 'automotive']
         }
       });
