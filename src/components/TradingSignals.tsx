@@ -9,8 +9,13 @@ import { TrendingUp, TrendingDown, Activity, AlertTriangle, Target, Clock } from
 export default function TradingSignals() {
   // Get user's portfolios and watchlist
   const { data: portfolios } = useUserPortfolios();
-  const { data: holdings } = usePortfolioHoldings(portfolios?.[0]?.id || null);
   const { data: watchlist } = useWatchlist();
+  
+  // Use the "Husam" portfolio specifically (from your data)
+  // Or fallback to first portfolio if Husam not found
+  const husamPortfolio = portfolios?.find(p => p.name === 'Husam');
+  const selectedPortfolioId = husamPortfolio?.id || portfolios?.[0]?.id || null;
+  const { data: holdings } = usePortfolioHoldings(selectedPortfolioId);
   
   // Combine portfolio and watchlist symbols
   const portfolioSymbols = holdings?.map(h => h.symbol) || [];

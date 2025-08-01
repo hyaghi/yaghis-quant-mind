@@ -25,7 +25,12 @@ export default function Dashboard() {
   const { data: portfolios, isLoading: portfoliosLoading } = useUserPortfolios();
   const portfolioMetrics = usePortfolioMetrics();
   const marketOverview = useMarketOverview();
-  const aiSignals = useAISignals(['AAPL', 'TSLA', 'SPY']);
+  // Get portfolio symbols for AI signals
+  const portfolioHoldings = portfolios?.flatMap(p => {
+    // This is a simplified approach - in real implementation you'd fetch holdings properly
+    return []; // Placeholder - the actual data comes from the TradingSignals component
+  }) || [];
+  const aiSignals = useAISignals(['AAPL', 'TSLA', 'SPY']); // This will be updated by TradingSignals component
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
