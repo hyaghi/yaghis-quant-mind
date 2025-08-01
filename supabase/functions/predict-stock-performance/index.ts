@@ -311,7 +311,7 @@ Technical Analysis:
 - Resistance: $${technicalAnalysis.resistance}
 - Volatility: ${technicalAnalysis.volatility}
 
-Provide a prediction for the ${timeframe} timeframe in JSON format with:
+Provide a prediction for the ${timeframe === '1year' ? '1 year' : timeframe} timeframe in JSON format with:
 {
   "direction": "bullish/bearish/neutral",
   "targetPrice": number,
@@ -328,6 +328,7 @@ Provide a prediction for the ${timeframe} timeframe in JSON format with:
 `;
 
   try {
+    console.log('Making OpenAI request...');
     const response = await makeOpenAIRequest({
       model: 'gpt-4.1-2025-04-14',
       messages: [
@@ -343,7 +344,9 @@ Provide a prediction for the ${timeframe} timeframe in JSON format with:
       temperature: 0.2
     });
 
+    console.log('OpenAI response received');
     const data = response;
+    console.log('Parsing AI response...');
     const aiPrediction = JSON.parse(data.choices[0].message.content);
 
     return {
