@@ -76,8 +76,8 @@ const App = () => (
               } />
               <Route path="/portfolio" element={
                 <ProtectedRoute>
+                  <Navigation />
                   <PortfolioPaywall>
-                    <Navigation />
                       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                         <Portfolio />
                       </main>
@@ -86,8 +86,8 @@ const App = () => (
               } />
               <Route path="/scenarios" element={
                 <ProtectedRoute>
+                  <Navigation />
                   <PortfolioPaywall>
-                    <Navigation />
                       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                         <Scenarios />
                       </main>
@@ -96,8 +96,8 @@ const App = () => (
               } />
               <Route path="/optimizer" element={
                 <ProtectedRoute>
+                  <Navigation />
                   <PortfolioPaywall>
-                    <Navigation />
                       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                         <Optimizer />
                       </main>
@@ -106,8 +106,8 @@ const App = () => (
               } />
               <Route path="/simulations" element={
                 <ProtectedRoute>
+                  <Navigation />
                   <PortfolioPaywall>
-                    <Navigation />
                       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                         <Simulations />
                       </main>
@@ -116,8 +116,8 @@ const App = () => (
               } />
               <Route path="/reports" element={
                 <ProtectedRoute>
+                  <Navigation />
                   <PortfolioPaywall>
-                    <Navigation />
                       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                         <Reports />
                       </main>
@@ -126,8 +126,8 @@ const App = () => (
               } />
               <Route path="/risk" element={
                 <ProtectedRoute>
+                  <Navigation />
                   <PortfolioPaywall>
-                    <Navigation />
                       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                         <RiskManagement />
                       </main>
