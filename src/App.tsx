@@ -35,52 +35,52 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
-                <ProtectedRoute>
-                  <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Dashboard />
-                  </main>
-                </ProtectedRoute>
+                  <ProtectedRoute>
+                    <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <Dashboard />
+                    </main>
+                  </ProtectedRoute>
               } />
               <Route path="/strategy" element={
                 <ProtectedRoute>
                   <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <StrategyLab />
-                  </main>
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <StrategyLab />
+                    </main>
                 </ProtectedRoute>
               } />
               <Route path="/news" element={
                 <ProtectedRoute>
                   <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <NewsSentimentDashboard />
-                  </main>
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <NewsSentimentDashboard />
+                    </main>
                 </ProtectedRoute>
               } />
               <Route path="/watchlist" element={
                 <ProtectedRoute>
                   <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <WatchlistManager />
-                  </main>
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <WatchlistManager />
+                    </main>
                 </ProtectedRoute>
               } />
               <Route path="/signals" element={
                 <ProtectedRoute>
                   <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Dashboard />
-                  </main>
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <Dashboard />
+                    </main>
                 </ProtectedRoute>
               } />
               <Route path="/portfolio" element={
                 <ProtectedRoute>
                   <PortfolioPaywall>
                     <Navigation />
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <Portfolio />
-                    </main>
+                      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                        <Portfolio />
+                      </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>
               } />
@@ -88,9 +88,9 @@ const App = () => (
                 <ProtectedRoute>
                   <PortfolioPaywall>
                     <Navigation />
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <Scenarios />
-                    </main>
+                      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                        <Scenarios />
+                      </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>
               } />
@@ -98,9 +98,9 @@ const App = () => (
                 <ProtectedRoute>
                   <PortfolioPaywall>
                     <Navigation />
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <Optimizer />
-                    </main>
+                      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                        <Optimizer />
+                      </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>
               } />
@@ -108,9 +108,9 @@ const App = () => (
                 <ProtectedRoute>
                   <PortfolioPaywall>
                     <Navigation />
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <Simulations />
-                    </main>
+                      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                        <Simulations />
+                      </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>
               } />
@@ -118,9 +118,9 @@ const App = () => (
                 <ProtectedRoute>
                   <PortfolioPaywall>
                     <Navigation />
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <Reports />
-                    </main>
+                      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                        <Reports />
+                      </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>
               } />
@@ -128,24 +128,26 @@ const App = () => (
                 <ProtectedRoute>
                   <PortfolioPaywall>
                     <Navigation />
-                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                      <RiskManagement />
-                    </main>
+                      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                        <RiskManagement />
+                      </main>
                   </PortfolioPaywall>
                 </ProtectedRoute>
               } />
               <Route path="/community" element={
                 <ProtectedRoute>
                   <Navigation />
-                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <Community />
-                  </main>
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <Community />
+                    </main>
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={
                 <ProtectedRoute>
                   <Navigation />
-                  <Settings />
+                    <div className="pt-16">
+                      <Settings />
+                    </div>
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
