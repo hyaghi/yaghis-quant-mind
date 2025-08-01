@@ -20,7 +20,8 @@ import {
   FileText,
   HelpCircle,
   Users,
-  ChevronDown
+  ChevronDown,
+  Brain
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -53,9 +54,15 @@ const mainNavigation = [
     submenu: [
       { 
         name: "News Sentiment", 
-        href: "/news", 
+        href: "/news-sentiment", 
         icon: Newspaper,
         description: "AI-powered analysis of financial news and market sentiment"
+      },
+      { 
+        name: "Stock Prediction", 
+        href: "/stock-prediction", 
+        icon: Brain,
+        description: "AI-powered stock performance predictions using news & technical analysis"
       },
       { 
         name: "AI Signals", 

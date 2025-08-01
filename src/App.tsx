@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import StrategyLab from "./pages/StrategyLab";
 import Portfolio from "./pages/Portfolio";
 import RiskManagement from "./pages/RiskManagement";
+import StockPrediction from "./pages/StockPrediction";
 import NewsSentimentDashboard from "./pages/NewsSentimentDashboard";
 import WatchlistManager from "./pages/WatchlistManager";
 import Scenarios from "./pages/Scenarios";
@@ -50,11 +51,19 @@ const App = () => (
                     </main>
                 </ProtectedRoute>
               } />
-              <Route path="/news" element={
+              <Route path="/news-sentiment" element={
                 <ProtectedRoute>
                   <Navigation />
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                       <NewsSentimentDashboard />
+                    </main>
+                </ProtectedRoute>
+              } />
+              <Route path="/stock-prediction" element={
+                <ProtectedRoute>
+                  <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <StockPrediction />
                     </main>
                 </ProtectedRoute>
               } />

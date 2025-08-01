@@ -360,6 +360,51 @@ export type Database = {
           },
         ]
       }
+      stock_predictions: {
+        Row: {
+          confidence: number
+          created_at: string
+          current_price: number
+          id: string
+          key_factors: Json
+          predicted_direction: string
+          predicted_price_range: Json
+          reasoning: string
+          risk_level: string
+          symbol: string
+          timeframe: string
+          updated_at: string
+        }
+        Insert: {
+          confidence: number
+          created_at?: string
+          current_price: number
+          id?: string
+          key_factors: Json
+          predicted_direction: string
+          predicted_price_range: Json
+          reasoning: string
+          risk_level: string
+          symbol: string
+          timeframe: string
+          updated_at?: string
+        }
+        Update: {
+          confidence?: number
+          created_at?: string
+          current_price?: number
+          id?: string
+          key_factors?: Json
+          predicted_direction?: string
+          predicted_price_range?: Json
+          reasoning?: string
+          risk_level?: string
+          symbol?: string
+          timeframe?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
