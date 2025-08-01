@@ -3,10 +3,24 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useAISignals } from '@/hooks/useMarketData';
+import { useUserPortfolios, usePortfolioHoldings, useWatchlist } from '@/hooks/usePortfolio';
 import { TrendingUp, TrendingDown, Activity, AlertTriangle, Target, Clock } from 'lucide-react';
 
 export default function TradingSignals() {
-  const { data: signals, isLoading, error, refetch } = useAISignals(['AAPL', 'TSLA', 'SPY', 'QQQ', 'NVDA', 'MSFT']);
+  // Get user's portfolios and watchlist
+  const { data: portfolios } = useUserPortfolios();
+  const { data: holdings } = usePortfolioHoldings(portfolios?.[0]?.id || null);
+  const { data: watchlist } = useWatchlist();
+  
+  // Combine portfolio and watchlist symbols
+  const portfolioSymbols = holdings?.map(h => h.symbol) || [];
+  const watchlistSymbols = watchlist?.map(w => w.symbol) || [];
+  const allSymbols = [...new Set([...portfolioSymbols, ...watchlistSymbols])];
+  
+  // Fallback to default symbols if user has no portfolio/watchlist
+  const symbols = allSymbols.length > 0 ? allSymbols : ['SPY', 'QQQ', 'VTI'];
+  
+  const { data: signals, isLoading, error, refetch } = useAISignals(symbols);
 
   if (isLoading) {
     return (
