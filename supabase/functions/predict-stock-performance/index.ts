@@ -185,6 +185,11 @@ async function analyzeRecentNews(symbol: string): Promise<NewsAnalysis> {
     });
 
     const sentimentData = await sentimentResponse.json();
+    
+    if (!sentimentData.choices || sentimentData.choices.length === 0) {
+      throw new Error('No response from OpenAI');
+    }
+    
     const analysis = JSON.parse(sentimentData.choices[0].message.content);
 
     return {
@@ -195,6 +200,7 @@ async function analyzeRecentNews(symbol: string): Promise<NewsAnalysis> {
     };
   } catch (error) {
     console.error('Error analyzing news:', error);
+    // Return default values instead of throwing
     return {
       sentiment: 'neutral',
       score: 0,
@@ -247,6 +253,7 @@ async function performTechnicalAnalysis(symbol: string): Promise<TechnicalAnalys
     };
   } catch (error) {
     console.error('Error in technical analysis:', error);
+    // Return default values instead of throwing
     return {
       trend: 'sideways',
       support: 0,
@@ -327,6 +334,11 @@ Provide a prediction for the ${timeframe} timeframe in JSON format with:
     });
 
     const data = await response.json();
+    
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error('No response from OpenAI');
+    }
+    
     const aiPrediction = JSON.parse(data.choices[0].message.content);
 
     return {
