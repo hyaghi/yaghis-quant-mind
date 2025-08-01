@@ -101,6 +101,7 @@ export default function StockPrediction() {
     }
 
     setIsLoading(true);
+    console.log('Calling predict-stock-performance with:', { symbol: symbol.toUpperCase(), timeframe });
     
     try {
       const { data, error } = await supabase.functions.invoke('predict-stock-performance', {
@@ -110,9 +111,14 @@ export default function StockPrediction() {
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
 
-      if (data.success) {
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (data?.success) {
         setPrediction(data.prediction);
         toast({
           title: "Prediction Generated",
