@@ -12,6 +12,20 @@ const finnhubApiKey = Deno.env.get('FINNHUB_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+// Validate required environment variables
+if (!openAIApiKey) {
+  console.error('OPENAI_API_KEY is not configured');
+}
+if (!finnhubApiKey) {
+  console.error('FINNHUB_API_KEY is not configured');
+}
+if (!supabaseUrl) {
+  console.error('SUPABASE_URL is not configured');
+}
+if (!supabaseKey) {
+  console.error('SUPABASE_SERVICE_ROLE_KEY is not configured');
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 interface StockPrediction {
@@ -23,7 +37,7 @@ interface StockPrediction {
     high: number;
     target: number;
   };
-  timeframe: '1day' | '1week' | '1month';
+  timeframe: '1day' | '1week' | '1month' | '1year';
   confidence: number;
   reasoning: string;
   keyFactors: {
@@ -63,18 +77,30 @@ serve(async (req) => {
       throw new Error('Stock symbol is required');
     }
 
+    // Check for missing API keys before proceeding
+    if (!openAIApiKey || !finnhubApiKey) {
+      throw new Error('Missing required API keys. Please configure OPENAI_API_KEY and FINNHUB_API_KEY in Supabase Edge Function secrets.');
+    }
+
     console.log(`Generating prediction for ${symbol} with timeframe ${timeframe}`);
 
     // Fetch current stock data
+    console.log('Fetching stock data...');
     const stockData = await fetchStockData(symbol);
+    console.log('Stock data fetched successfully');
     
     // Fetch recent news and analyze sentiment
+    console.log('Analyzing recent news...');
     const newsAnalysis = await analyzeRecentNews(symbol);
+    console.log('News analysis completed');
     
     // Perform technical analysis on historical data
+    console.log('Performing technical analysis...');
     const technicalAnalysis = await performTechnicalAnalysis(symbol);
+    console.log('Technical analysis completed');
     
     // Generate AI prediction
+    console.log('Generating AI prediction...');
     const prediction = await generateAIPrediction(
       symbol,
       stockData,
@@ -82,9 +108,11 @@ serve(async (req) => {
       technicalAnalysis,
       timeframe
     );
+    console.log('AI prediction generated successfully');
 
-    // Store prediction in database for tracking
+    console.log('Storing prediction in database...');
     await storePrediction(prediction);
+    console.log('Prediction stored successfully');
 
     return new Response(JSON.stringify({
       success: true,
@@ -96,9 +124,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in predict-stock-performance:', error);
+    console.error('Error stack:', error.stack);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error.message || 'An unexpected error occurred'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
