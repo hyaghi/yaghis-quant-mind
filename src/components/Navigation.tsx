@@ -18,7 +18,8 @@ import {
   Zap,
   BarChart,
   FileText,
-  HelpCircle
+  HelpCircle,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -103,6 +104,12 @@ const navigation = [
     href: "/risk", 
     icon: Shield,
     description: "Monitor and manage portfolio risk metrics and exposures"
+  },
+  { 
+    name: "Community", 
+    href: "/community", 
+    icon: Users,
+    description: "Connect with fellow investors, share insights, and learn together"
   },
   { 
     name: "Settings", 

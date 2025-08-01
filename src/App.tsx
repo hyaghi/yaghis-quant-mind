@@ -17,6 +17,7 @@ import Simulations from "./pages/Simulations";
 import Reports from "./pages/Reports";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import Community from "./pages/Community";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PortfolioPaywall from "./components/PortfolioPaywall";
 
@@ -130,6 +131,14 @@ const App = () => (
                       <RiskManagement />
                     </main>
                   </PortfolioPaywall>
+                </ProtectedRoute>
+              } />
+              <Route path="/community" element={
+                <ProtectedRoute>
+                  <Navigation />
+                  <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <Community />
+                  </main>
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={
