@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +80,16 @@ export default function Simulations() {
   const { toast } = useToast();
   const [simulations, setSimulations] = useState<SimulationRun[]>(mockSimulations);
   const [selectedSim, setSelectedSim] = useState<string | null>(null);
+  const [runningIntervals, setRunningIntervals] = useState<Map<string, NodeJS.Timeout>>(new Map());
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      runningIntervals.forEach((interval) => {
+        clearInterval(interval);
+      });
+    };
+  }, [runningIntervals]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -100,40 +110,62 @@ export default function Simulations() {
   };
 
   const handleStartSimulation = (id: string) => {
+    // Clear any existing interval for this simulation
+    const existingInterval = runningIntervals.get(id);
+    if (existingInterval) {
+      clearInterval(existingInterval);
+    }
+
     setSimulations(prev => prev.map(sim => 
       sim.id === id 
         ? { ...sim, status: "running" as const, startedAt: new Date().toISOString(), progress: 0 }
         : sim
     ));
 
-    // Simulate progress
+    // Simulate progress with proper cleanup
     const interval = setInterval(() => {
-      setSimulations(prev => prev.map(sim => {
-        if (sim.id === id && sim.status === "running") {
-          const newProgress = sim.progress + Math.random() * 10;
-          if (newProgress >= 100) {
-            clearInterval(interval);
-            return {
-              ...sim,
-              status: "completed" as const,
-              progress: 100,
-              finishedAt: new Date().toISOString(),
-              results: {
-                paths: 1000,
-                scenarios: 12,
-                avgReturn: 0.065 + Math.random() * 0.04,
-                avgVol: 0.08 + Math.random() * 0.06,
-                sharpeRatio: 0.6 + Math.random() * 0.4,
-                maxDrawdown: 0.1 + Math.random() * 0.15,
-                passRate: 0.7 + Math.random() * 0.3
-              }
-            };
+      setSimulations(prev => {
+        return prev.map(sim => {
+          if (sim.id === id && sim.status === "running") {
+            const newProgress = Math.min(sim.progress + Math.random() * 10, 100);
+            
+            if (newProgress >= 100) {
+              // Clear interval and clean up
+              setRunningIntervals(prevIntervals => {
+                const newIntervals = new Map(prevIntervals);
+                const intervalToClose = newIntervals.get(id);
+                if (intervalToClose) {
+                  clearInterval(intervalToClose);
+                  newIntervals.delete(id);
+                }
+                return newIntervals;
+              });
+              
+              return {
+                ...sim,
+                status: "completed" as const,
+                progress: 100,
+                finishedAt: new Date().toISOString(),
+                results: {
+                  paths: 1000,
+                  scenarios: 12,
+                  avgReturn: 0.065 + Math.random() * 0.04,
+                  avgVol: 0.08 + Math.random() * 0.06,
+                  sharpeRatio: 0.6 + Math.random() * 0.4,
+                  maxDrawdown: 0.1 + Math.random() * 0.15,
+                  passRate: 0.7 + Math.random() * 0.3
+                }
+              };
+            }
+            return { ...sim, progress: newProgress };
           }
-          return { ...sim, progress: newProgress };
-        }
-        return sim;
-      }));
+          return sim;
+        });
+      });
     }, 1000);
+
+    // Store the interval reference
+    setRunningIntervals(prev => new Map(prev.set(id, interval)));
 
     toast({
       title: "Simulation Started",
@@ -142,6 +174,17 @@ export default function Simulations() {
   };
 
   const handleStopSimulation = (id: string) => {
+    // Clear the interval
+    const interval = runningIntervals.get(id);
+    if (interval) {
+      clearInterval(interval);
+      setRunningIntervals(prev => {
+        const newIntervals = new Map(prev);
+        newIntervals.delete(id);
+        return newIntervals;
+      });
+    }
+
     setSimulations(prev => prev.map(sim => 
       sim.id === id && sim.status === "running"
         ? { ...sim, status: "pending" as const, progress: 0 }
