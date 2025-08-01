@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-const finnhubApiKey = Deno.env.get('FINNHUB_API_KEY');
+const marketstackApiKey = Deno.env.get('MARKETSTACK_API_KEY');
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -16,8 +16,8 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 if (!openAIApiKey) {
   console.error('OPENAI_API_KEY is not configured');
 }
-if (!finnhubApiKey) {
-  console.error('FINNHUB_API_KEY is not configured');
+if (!marketstackApiKey) {
+  console.error('MARKETSTACK_API_KEY is not configured');
 }
 if (!supabaseUrl) {
   console.error('SUPABASE_URL is not configured');
@@ -78,8 +78,8 @@ serve(async (req) => {
     }
 
     // Check for missing API keys before proceeding
-    if (!openAIApiKey || !finnhubApiKey) {
-      throw new Error('Missing required API keys. Please configure OPENAI_API_KEY and FINNHUB_API_KEY in Supabase Edge Function secrets.');
+    if (!marketstackApiKey) {
+      throw new Error('Missing required API key. Please configure MARKETSTACK_API_KEY in Supabase Edge Function secrets.');
     }
 
     console.log(`Generating prediction for ${symbol} with timeframe ${timeframe}`);
@@ -125,31 +125,46 @@ serve(async (req) => {
 
 async function fetchStockData(symbol: string) {
   try {
-    // Get current quote
+    // Get current quote from Marketstack
     const quoteResponse = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${finnhubApiKey}`
+      `https://api.marketstack.com/v1/eod/latest?access_key=${marketstackApiKey}&symbols=${symbol}`
     );
-    const quote = await quoteResponse.json();
+    const quoteData = await quoteResponse.json();
 
-    // Get basic company info
-    const profileResponse = await fetch(
-      `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${finnhubApiKey}`
+    if (!quoteData.data || quoteData.data.length === 0) {
+      throw new Error(`No data found for symbol ${symbol}`);
+    }
+
+    const quote = quoteData.data[0];
+
+    // Get intraday data for current price
+    const intradayResponse = await fetch(
+      `https://api.marketstack.com/v1/intraday/latest?access_key=${marketstackApiKey}&symbols=${symbol}`
     );
-    const profile = await profileResponse.json();
+    const intradayData = await intradayResponse.json();
+
+    let currentPrice = quote.close;
+    if (intradayData.data && intradayData.data.length > 0) {
+      currentPrice = intradayData.data[0].last || quote.close;
+    }
+
+    const previousClose = quote.close;
+    const change = currentPrice - previousClose;
+    const changePercent = (change / previousClose) * 100;
 
     return {
-      currentPrice: quote.c,
-      previousClose: quote.pc,
-      change: quote.d,
-      changePercent: quote.dp,
-      high: quote.h,
-      low: quote.l,
-      volume: quote.v || 0,
-      marketCap: profile.marketCapitalization,
-      industry: profile.finnhubIndustry
+      currentPrice,
+      previousClose,
+      change,
+      changePercent,
+      high: quote.high,
+      low: quote.low,
+      volume: quote.volume || 0,
+      marketCap: null, // Marketstack doesn't provide market cap in basic plan
+      industry: null
     };
   } catch (error) {
-    console.error('Error fetching stock data:', error);
+    console.error('Error fetching stock data from Marketstack:', error);
     throw new Error('Failed to fetch stock data');
   }
 }
