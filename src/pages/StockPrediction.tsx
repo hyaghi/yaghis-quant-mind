@@ -246,18 +246,18 @@ export default function StockPrediction() {
           {userSymbols.length > 0 && (
             <div>
               <Label>Quick Select from Your Holdings:</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {userSymbols.map((sym) => (
-                  <Button
-                    key={sym}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setSymbol(sym)}
-                  >
-                    {sym}
-                  </Button>
-                ))}
-              </div>
+              <Select onValueChange={(value) => setSymbol(value)}>
+                <SelectTrigger className="w-full mt-2">
+                  <SelectValue placeholder="Select a stock from your portfolio or watchlist" />
+                </SelectTrigger>
+                <SelectContent>
+                  {userSymbols.map((sym) => (
+                    <SelectItem key={sym} value={sym}>
+                      {sym}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
