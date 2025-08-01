@@ -153,7 +153,7 @@ export default function Navigation() {
     <nav className="bg-card border-b border-border fixed top-4 left-0 right-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-8 w-full">
             <div className="flex-shrink-0 flex items-center">
               <DollarSign className="h-8 w-8 text-primary mr-2" />
               <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
@@ -163,7 +163,7 @@ export default function Navigation() {
             
             {/* Desktop Navigation */}
             <TooltipProvider>
-              <div className="hidden md:flex md:space-x-1">
+              <div className="hidden md:flex md:items-center md:space-x-1 flex-1 justify-center">
                 {mainNavigation.map((item) => (
                   <div key={item.name}>
                     {item.href ? (
