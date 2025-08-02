@@ -180,8 +180,12 @@ serve(async (req) => {
       }
     }
 
-    // Sort by predicted return (descending)
-    recommendations.sort((a, b) => b.predictedReturn - a.predictedReturn);
+    // Sort by composite score (predicted return + confidence)
+    recommendations.sort((a, b) => {
+      const scoreA = a.predictedReturn * a.confidence;
+      const scoreB = b.predictedReturn * b.confidence;
+      return scoreB - scoreA;
+    });
 
     console.log(`Generated ${recommendations.length} recommendations`);
 
