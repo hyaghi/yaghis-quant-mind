@@ -25,6 +25,13 @@ import {
   Pin
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  useCommunityPosts, 
+  useCreatePost, 
+  useLikePost, 
+  useCommunityRealtime 
+} from '@/hooks/useCommunity';
+import { formatDistanceToNow } from 'date-fns';
 
 // Mock data for community features
 const discussions = [
@@ -105,11 +112,30 @@ export default function Community() {
   const { user } = useAuth();
   const [newPost, setNewPost] = useState({ title: '', content: '', category: 'General' });
   const [newComment, setNewComment] = useState('');
+  
+  // Real database operations
+  const { data: posts, isLoading: postsLoading } = useCommunityPosts();
+  const createPostMutation = useCreatePost();
+  const likePostMutation = useLikePost();
+  
+  // Set up real-time updates
+  useCommunityRealtime();
 
   const handlePostSubmit = () => {
-    // Handle new post submission
-    console.log('New post:', newPost);
-    setNewPost({ title: '', content: '', category: 'General' });
+    if (!newPost.title.trim() || !newPost.content.trim()) return;
+    
+    createPostMutation.mutate(
+      { title: newPost.title, content: newPost.content },
+      {
+        onSuccess: () => {
+          setNewPost({ title: '', content: '', category: 'General' });
+        }
+      }
+    );
+  };
+
+  const handleLikePost = (postId: string) => {
+    likePostMutation.mutate(postId);
   };
 
   const handleCommentSubmit = () => {
@@ -185,59 +211,79 @@ export default function Community() {
                       <option value="Market Analysis">Market Analysis</option>
                       <option value="Education">Education</option>
                     </select>
-                    <Button onClick={handlePostSubmit} disabled={!newPost.title || !newPost.content}>
+                    <Button 
+                      onClick={handlePostSubmit} 
+                      disabled={!newPost.title || !newPost.content || createPostMutation.isPending}
+                    >
                       <Send className="h-4 w-4 mr-2" />
-                      Post
+                      {createPostMutation.isPending ? 'Posting...' : 'Post'}
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Discussion List */}
-              {discussions.map((discussion) => (
-                <Card key={discussion.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          {discussion.isPinned && (
-                            <Pin className="h-4 w-4 text-primary" />
-                          )}
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={discussion.avatar} />
-                            <AvatarFallback>{discussion.author[0]}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{discussion.author}</p>
-                            <p className="text-sm text-muted-foreground">{discussion.timestamp}</p>
+              {postsLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Loading discussions...</p>
+                </div>
+              ) : posts && posts.length > 0 ? (
+                posts.map((post) => (
+                  <Card key={post.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="pt-6">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={post.author_avatar} />
+                              <AvatarFallback>
+                                {post.author_name?.[0]?.toUpperCase() || 'A'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{post.author_name || 'Anonymous'}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <Badge variant="outline">{discussion.category}</Badge>
-                      </div>
-                      
-                      <div>
-                        <h3 className="font-semibold text-lg mb-2">{discussion.title}</h3>
-                        <p className="text-muted-foreground">{discussion.preview}</p>
-                      </div>
+                        
+                        <div>
+                          <h3 className="font-semibold text-lg mb-2">{post.title}</h3>
+                          <p className="text-muted-foreground line-clamp-3">{post.content}</p>
+                        </div>
 
-                      <div className="flex items-center gap-4 pt-2">
-                        <Button variant="ghost" size="sm" className="text-muted-foreground">
-                          <ThumbsUp className="h-4 w-4 mr-1" />
-                          {discussion.likes}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-muted-foreground">
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          {discussion.replies}
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-muted-foreground">
-                          <Share2 className="h-4 w-4 mr-1" />
-                          Share
-                        </Button>
+                        <div className="flex items-center gap-4 pt-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-muted-foreground hover:text-primary"
+                            onClick={() => handleLikePost(post.id)}
+                            disabled={likePostMutation.isPending}
+                          >
+                            <ThumbsUp className="h-4 w-4 mr-1" />
+                            {post.likes}
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-muted-foreground">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            {post.reply_count}
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-muted-foreground">
+                            <Share2 className="h-4 w-4 mr-1" />
+                            Share
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No discussions yet. Be the first to start a conversation!</p>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}
