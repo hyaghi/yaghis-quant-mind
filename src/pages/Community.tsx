@@ -201,7 +201,7 @@ export default function Community() {
                   />
                   <div className="flex items-center justify-between">
                     <select 
-                      className="px-3 py-2 border rounded-md"
+                      className="px-3 py-2 border rounded-md bg-background text-foreground"
                       value={newPost.category}
                       onChange={(e) => setNewPost({ ...newPost, category: e.target.value })}
                     >
