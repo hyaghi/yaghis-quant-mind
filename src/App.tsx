@@ -12,6 +12,7 @@ import RiskManagement from "./pages/RiskManagement";
 import StockPrediction from "./pages/StockPrediction";
 import NewsSentimentDashboard from "./pages/NewsSentimentDashboard";
 import WatchlistManager from "./pages/WatchlistManager";
+import StockExplorer from "./pages/StockExplorer";
 import Scenarios from "./pages/Scenarios";
 import Optimizer from "./pages/Optimizer";
 import Simulations from "./pages/Simulations";
@@ -72,6 +73,14 @@ const App = () => (
                   <Navigation />
                     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
                       <WatchlistManager />
+                    </main>
+                </ProtectedRoute>
+              } />
+              <Route path="/stock-explorer" element={
+                <ProtectedRoute>
+                  <Navigation />
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+                      <StockExplorer />
                     </main>
                 </ProtectedRoute>
               } />

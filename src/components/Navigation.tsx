@@ -21,7 +21,8 @@ import {
   HelpCircle,
   Users,
   ChevronDown,
-  Brain
+  Brain,
+  Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -81,6 +82,12 @@ const mainNavigation = [
         href: "/watchlist", 
         icon: Eye,
         description: "Track and monitor your favorite stocks and assets"
+      },
+      { 
+        name: "Stock Explorer", 
+        href: "/stock-explorer", 
+        icon: Search,
+        description: "Discover high-potential stocks outside your portfolio and watchlist"
       }
     ]
   },
